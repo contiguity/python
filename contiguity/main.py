@@ -17,14 +17,14 @@ class Contiguity:
         self.baseURL = "https://api.contiguity.co"
         self.orwellBaseURL = "https://orwell.contiguity.co"
         self.headers = {"Content-Type": "application/json",
-                "Authorization": f"Token {self.token}",}
+                "Authorization": f"Token {token}"}
 
     @property
     def send(self):
         """
         Returns an instance of the Send class.
         """
-        return Send(self.token, self.baseURL, self.debug, self.headers)
+        return Send(self.token, self.baseURL, self.headers, self.debug)
 
     @property
     def verify(self):
@@ -38,21 +38,21 @@ class Contiguity:
         """
          Returns an instance of the EmailAnalytics class.
          """
-        return EmailAnalytics(self.token, self.orwellBaseURL, self.debug)
+        return EmailAnalytics(self.token, self.orwellBaseURL, self.headers, self.debug)
 
     @property
     def quota(self):
         """
          Returns an instance of the Quota class.
          """
-        return Quota(self.token, self.baseURL, self.debug)
+        return Quota(self.token, self.baseURL, self.headers,  self.debug)
 
     @property
     def otp(self):
         """
          Returns an instance of the OTP class.
          """
-        return OTP(self.token, self.baseURL, self.debug)
+        return OTP(self.token, self.baseURL, self.headers, self.debug)
 
     @property
     def template(self):
