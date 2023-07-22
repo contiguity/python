@@ -183,8 +183,11 @@ class Verify:
         self.token = token
 
     def number(self, number):
-        validity = phonenumbers.is_valid_number(phonenumbers.parse(number))
-        return validity
+        try:
+            validity = phonenumbers.is_valid_number(phonenumbers.parse(number))
+            return validity
+        except Exception as e:
+            return False
 
     def email(self, email):
         email_pattern = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
