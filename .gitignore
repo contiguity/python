@@ -14,6 +14,8 @@ takeout/.DS_Store
 
 # Test code
 test.py
+*.lock
+*.toml
 
 # Distribution / packaging
 .Python

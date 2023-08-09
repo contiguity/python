@@ -16,13 +16,15 @@ class Contiguity:
         self.debug = debug
         self.baseURL = "https://api.contiguity.co"
         self.orwellBaseURL = "https://orwell.contiguity.co"
+        self.headers = {"Content-Type": "application/json",
+                "Authorization": f"Token {token}"}
 
     @property
     def send(self):
         """
         Returns an instance of the Send class.
         """
-        return Send(self.token, self.baseURL, self.debug)
+        return Send(self.token, self.baseURL, self.headers, self.debug)
 
     @property
     def verify(self):
@@ -36,21 +38,21 @@ class Contiguity:
         """
          Returns an instance of the EmailAnalytics class.
          """
-        return EmailAnalytics(self.token, self.orwellBaseURL, self.debug)
+        return EmailAnalytics(self.token, self.orwellBaseURL, self.headers, self.debug)
 
     @property
     def quota(self):
         """
          Returns an instance of the Quota class.
          """
-        return Quota(self.token, self.baseURL, self.debug)
+        return Quota(self.token, self.baseURL, self.headers,  self.debug)
 
     @property
     def otp(self):
         """
          Returns an instance of the OTP class.
          """
-        return OTP(self.token, self.baseURL, self.debug)
+        return OTP(self.token, self.baseURL, self.headers, self.debug)
 
     @property
     def template(self):
@@ -65,10 +67,11 @@ class Send:
     Send class for Contiguity.
     """
 
-    def __init__(self, token, baseURL, debug=False):
+    def __init__(self, token, baseURL, headers, debug=False):
         self.token = token
         self.baseURL = baseURL
         self.debug = debug
+        self.headers = headers
 
     def text(self, obj):
         """
@@ -102,10 +105,7 @@ class Send:
                 'to': phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164),
                 'message': obj['message'],
             },
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Token {self.token}",
-            },
+            headers= self.headers
         )
         text_handler_response = text_handler.json()
 
@@ -163,10 +163,7 @@ class Send:
         email_handler = requests.post(
             f"{self.baseURL}/send/email",
             json=email_payload,
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Token {self.token}",
-            },
+            headers= self.headers
         )
 
         email_handler_response = email_handler.json()
@@ -186,8 +183,11 @@ class Verify:
         self.token = token
 
     def number(self, number):
-        validity = phonenumbers.is_valid_number(phonenumbers.parse(number))
-        return validity
+        try:
+            validity = phonenumbers.is_valid_number(phonenumbers.parse(number))
+            return validity
+        except Exception as e:
+            return False
 
     def email(self, email):
         email_pattern = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
@@ -195,10 +195,11 @@ class Verify:
 
 
 class EmailAnalytics:
-    def __init__(self, token, orwellBaseURL, debug=False):
+    def __init__(self, token, orwellBaseURL, headers,  debug=False):
         self.token = token
         self.orwellBaseURL = orwellBaseURL
         self.debug = debug
+        self.headers = headers
 
     def retrieve(self, id):
         if not self.token:
@@ -208,10 +209,7 @@ class EmailAnalytics:
 
         status = requests.get(
             f"{self.orwellBaseURL}/email/status/{id}",
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Token {self.token}",
-            },
+            headers= self.headers
         )
 
         json_data = status.json()
@@ -225,10 +223,11 @@ class EmailAnalytics:
 
 
 class Quota:
-    def __init__(self, token, baseURL, debug=False):
+    def __init__(self, token, baseURL, headers,  debug=False):
         self.token = token
         self.baseURL = baseURL
         self.debug = debug
+        self.headers = headers
 
     def retrieve(self):
         if not self.token:
@@ -236,10 +235,7 @@ class Quota:
 
         quota = requests.get(
             f"{self.baseURL}/user/get/quota",
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Token {self.token}",
-            },
+            headers= self.headers
         )
 
         json_data = quota.json()
@@ -254,10 +250,11 @@ class Quota:
 
 
 class OTP:
-    def __init__(self, token, baseURL, debug=False):
+    def __init__(self, token, baseURL, headers, debug=False):
         self.token = token
         self.baseURL = baseURL
         self.debug = debug
+        self.headers = headers
 
     def send(self, obj):
         if not self.token:
@@ -276,10 +273,7 @@ class OTP:
                 "language": obj["language"],
                 "name": obj.get("name"),
             },
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Token {self.token}",
-            },
+            headers= self.headers
         )
 
         otp_handler_response = otp_handler.json()
@@ -306,10 +300,7 @@ class OTP:
                 "otp": obj["otp"],
                 "otp_id": obj["otp_id"],
             },
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Token {self.token}",
-            },
+            headers= self.headers
         )
 
         otp_handler_response = otp_handler.json()
