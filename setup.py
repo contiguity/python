@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '1.0.0'
+VERSION = '1.0.2'
 DESCRIPTION = "Contiguity's official Python SDK"
 LONG_DESCRIPTION = "Contiguity's official Python SDK makes using Contiguity easier than ever. See more information at https://github.com/use-contiguity/python"
 
