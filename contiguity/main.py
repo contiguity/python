@@ -314,6 +314,31 @@ class OTP:
 
         return otp_handler_response["verified"]
 
+    def resend(self, obj):
+        if not self.token:
+            raise ValueError("Contiguity requires a token/API key to be provided via contiguity.login('token')")
+        if "otp_id" not in obj:
+            raise ValueError("Contiguity requires an OTP ID to be specified.")
+
+        otp_handler = requests.post(
+            f"{self.baseURL}/otp/resend",
+            json={
+                "otp_id": obj["otp_id"],
+            },
+            headers= self.headers
+        )
+
+        otp_handler_response = otp_handler.json()
+
+        if otp_handler.status_code != 200:
+            raise ValueError(
+                f"Contiguity couldn't resend your OTP. Received: {otp_handler.status_code} with reason: \"{otp_handler_response['message']}\"")
+        if self.debug:
+            print(
+                f"Contiguity resent your OTP ({obj['otp']}) with boolean resent status: {otp_handler_response['verified']}")
+
+        return otp_handler_response["verified"]
+
 
 class Template:
     def local(self, file):
