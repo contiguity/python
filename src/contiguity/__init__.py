@@ -1,6 +1,6 @@
 from ._client import ApiClient
 from .analytics import EmailAnalytics
-from .base import Base, BaseItem, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
+from .base import AsyncBase, Base, BaseItem, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
 from .otp import OTP
 from .quota import Quota
 from .send import Send
@@ -47,6 +47,7 @@ def login(token: str, /, *, debug: bool = False) -> Contiguity:
 
 
 __all__ = (
+    "AsyncBase",
     "Contiguity",
     "Send",
     "Verify",

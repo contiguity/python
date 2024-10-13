@@ -5,8 +5,7 @@ import os
 from collections.abc import Mapping, Sequence
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Generic, Literal, TypeVar, Union, overload
-from urllib.parse import quote
+from typing import TYPE_CHECKING, Generic, Literal, overload
 from warnings import warn
 
 from httpx import HTTPStatusError
@@ -15,138 +14,29 @@ from pydantic import JsonValue as DataType
 from typing_extensions import deprecated
 
 from contiguity._auth import get_data_key, get_project_id
-from contiguity._client import ApiClient, ApiError
+from contiguity._client import ApiError, AsyncApiClient
+
+from .common import (
+    UNSET,
+    DefaultItemT,
+    ItemT,
+    QueryResponse,
+    QueryType,
+    TimestampType,
+    Unset,
+    UpdateOperation,
+    UpdatePayload,
+    Updates,
+    check_key,
+)
+from .exceptions import ItemConflictError, ItemNotFoundError
 
 if TYPE_CHECKING:
     from httpx import Response as HttpxResponse
     from typing_extensions import Self
 
-TimestampType = Union[int, datetime]
-QueryType = Mapping[str, DataType]
 
-ItemType = Union[Mapping[str, Any], BaseModel]
-ItemT = TypeVar("ItemT", bound=ItemType)
-DefaultItemT = TypeVar("DefaultItemT")
-
-
-class _Unset:
-    pass
-
-
-_UNSET = _Unset()
-
-
-class BaseItem(BaseModel):
-    key: str
-
-
-class ItemConflictError(ApiError):
-    def __init__(self, key: str, *args: object) -> None:
-        super().__init__(f"item with key '{key}' already exists", *args)
-
-
-class ItemNotFoundError(ApiError):
-    def __init__(self, key: str, *args: object) -> None:
-        super().__init__(f"key '{key}' not found", *args)
-
-
-class InvalidKeyError(ValueError):
-    def __init__(self, key: str, *args: object) -> None:
-        super().__init__(f"invalid key '{key}'", *args)
-
-
-class QueryResponse(BaseModel, Generic[ItemT]):
-    count: int = 0
-    last_key: Union[str, None] = None  # noqa: UP007 Pydantic doesn't support `X | Y` syntax in Python 3.9.
-    items: Sequence[ItemT] = []
-
-
-class _UpdateOperation:
-    pass
-
-
-class _Trim(_UpdateOperation):
-    pass
-
-
-class _Increment(_UpdateOperation):
-    def __init__(self: _Increment, value: int = 1, /) -> None:
-        self.value = value
-
-
-class _Append(_UpdateOperation):
-    def __init__(self: _Append, value: DataType, /) -> None:
-        if isinstance(value, (list, tuple)):
-            self.value = value
-        else:
-            self.value = [value]
-
-
-class _Prepend(_Append):
-    pass
-
-
-class _Updates:
-    @staticmethod
-    def trim() -> _Trim:
-        return _Trim()
-
-    @staticmethod
-    def increment(value: int = 1, /) -> _Increment:
-        return _Increment(value)
-
-    @staticmethod
-    def append(value: DataType, /) -> _Append:
-        return _Append(value)
-
-    @staticmethod
-    def prepend(value: DataType, /) -> _Prepend:
-        return _Prepend(value)
-
-
-class _UpdatePayload(BaseModel):
-    set: dict[str, DataType] = {}
-    increment: dict[str, int] = {}
-    append: dict[str, Sequence[DataType]] = {}
-    prepend: dict[str, Sequence[DataType]] = {}
-    delete: list[str] = []
-
-    @classmethod
-    def from_updates_mapping(cls: type[Self], updates: Mapping[str, DataType | _UpdateOperation], /) -> Self:
-        set = {}
-        increment = {}
-        append = {}
-        prepend = {}
-        delete = []
-        for attr, value in updates.items():
-            if isinstance(value, _UpdateOperation):
-                if isinstance(value, _Trim):
-                    delete.append(attr)
-                elif isinstance(value, _Increment):
-                    increment[attr] = value.value
-                # Prepend must be checked before Append because it's a subclass of Append.
-                elif isinstance(value, _Prepend):
-                    prepend[attr] = value.value
-                elif isinstance(value, _Append):
-                    append[attr] = value.value
-            else:
-                set[attr] = value
-        return cls(
-            set=set,
-            increment=increment,
-            append=append,
-            prepend=prepend,
-            delete=delete,
-        )
-
-
-def _check_key(key: str, /) -> str:
-    if not key:
-        raise InvalidKeyError(key)
-    return quote(key, safe="")
-
-
-class Base(Generic[ItemT]):
+class AsyncBase(Generic[ItemT]):
     EXPIRES_ATTRIBUTE = "__expires"
     PUT_LIMIT = 30
 
@@ -203,8 +93,8 @@ class Base(Generic[ItemT]):
         self.host = host or os.getenv("CONTIGUITY_BASE_HOST") or "api.base.contiguity.co"
         self.api_version = api_version
         self.json_decoder = json_decoder
-        self.util = _Updates()
-        self._client = ApiClient(
+        self.util = Updates()
+        self._client = AsyncApiClient(
             base_url=f"https://{self.host}/{api_version}/{self.project_id}/{self.name}",
             api_key=self.data_key,
             timeout=300,
@@ -270,25 +160,25 @@ class Base(Generic[ItemT]):
         return item_dict
 
     @overload
-    def get(self: Self, key: str, /) -> ItemT | None: ...
+    async def get(self: Self, key: str, /) -> ItemT | None: ...
 
     @overload
-    def get(self: Self, key: str, /, *, default: ItemT) -> ItemT: ...
+    async def get(self: Self, key: str, /, *, default: ItemT) -> ItemT: ...
 
     @overload
-    def get(self: Self, key: str, /, *, default: DefaultItemT) -> ItemT | DefaultItemT: ...
+    async def get(self: Self, key: str, /, *, default: DefaultItemT) -> ItemT | DefaultItemT: ...
 
-    def get(
+    async def get(
         self: Self,
         key: str,
         /,
         *,
-        default: ItemT | DefaultItemT | _Unset = _UNSET,
+        default: ItemT | DefaultItemT | Unset = UNSET,
     ) -> ItemT | DefaultItemT | None:
-        key = _check_key(key)
-        response = self._client.get(f"/items/{key}")
+        key = check_key(key)
+        response = await self._client.get(f"/items/{key}")
         if response.status_code == HTTPStatus.NOT_FOUND:
-            if not isinstance(default, _Unset):
+            if not isinstance(default, Unset):
                 return default
             msg = (
                 "ItemNotFoundError will be raised in the future."
@@ -299,16 +189,16 @@ class Base(Generic[ItemT]):
 
         return self._response_as_item_type(response, sequence=False)
 
-    def delete(self: Self, key: str, /) -> None:
+    async def delete(self: Self, key: str, /) -> None:
         """Delete an item from the Base."""
-        key = _check_key(key)
-        response = self._client.delete(f"/items/{key}")
+        key = check_key(key)
+        response = await self._client.delete(f"/items/{key}")
         try:
             response.raise_for_status()
         except HTTPStatusError as exc:
             raise ApiError(exc.response.text) from exc
 
-    def insert(
+    async def insert(
         self: Self,
         item: ItemT,
         /,
@@ -317,7 +207,7 @@ class Base(Generic[ItemT]):
         expire_at: TimestampType | None = None,
     ) -> ItemT:
         item_dict = self._insert_expires_attr(item, expire_in=expire_in, expire_at=expire_at)
-        response = self._client.post("/items", json={"item": item_dict})
+        response = await self._client.post("/items", json={"item": item_dict})
 
         if response.status_code == HTTPStatus.CONFLICT:
             raise ItemConflictError(str(item_dict.get("key")))
@@ -327,7 +217,7 @@ class Base(Generic[ItemT]):
             raise ApiError(msg)
         return returned_item[0]
 
-    def put(
+    async def put(
         self: Self,
         *items: ItemT,
         expire_in: int | None = None,
@@ -344,11 +234,11 @@ class Base(Generic[ItemT]):
             raise ValueError(msg)
 
         item_dicts = [self._insert_expires_attr(item, expire_in=expire_in, expire_at=expire_at) for item in items]
-        response = self._client.put("/items", json={"items": item_dicts})
+        response = await self._client.put("/items", json={"items": item_dicts})
         return self._response_as_item_type(response, sequence=True)
 
     @deprecated("This method will be removed in a future release. You can pass multiple items to `put`.")
-    def put_many(
+    async def put_many(
         self: Self,
         items: Sequence[ItemT],
         /,
@@ -356,11 +246,11 @@ class Base(Generic[ItemT]):
         expire_in: int | None = None,
         expire_at: TimestampType | None = None,
     ) -> Sequence[ItemT]:
-        return self.put(*items, expire_in=expire_in, expire_at=expire_at)
+        return await self.put(*items, expire_in=expire_in, expire_at=expire_at)
 
-    def update(
+    async def update(
         self: Self,
-        updates: Mapping[str, DataType | _UpdateOperation],
+        updates: Mapping[str, DataType | UpdateOperation],
         /,
         *,
         key: str,
@@ -371,25 +261,25 @@ class Base(Generic[ItemT]):
         `updates` specifies the attribute names and values to update,add or remove
         `key` is the key of the item to be updated
         """
-        key = _check_key(key)
+        key = check_key(key)
         if not updates:
             msg = "no updates provided"
             raise ValueError(msg)
 
-        payload = _UpdatePayload.from_updates_mapping(updates)
+        payload = UpdatePayload.from_updates_mapping(updates)
         payload.set = self._insert_expires_attr(
             payload.set,
             expire_in=expire_in,
             expire_at=expire_at,
         )
 
-        response = self._client.patch(f"/items/{key}", json={"updates": payload.model_dump()})
+        response = await self._client.patch(f"/items/{key}", json={"updates": payload.model_dump()})
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise ItemNotFoundError(key)
 
         return self._response_as_item_type(response, sequence=False)
 
-    def query(
+    async def query(
         self: Self,
         *queries: QueryType,
         limit: int = 1000,
@@ -407,7 +297,7 @@ class Base(Generic[ItemT]):
         if queries:
             payload["query"] = queries
 
-        response = self._client.post("/query", json=payload)
+        response = await self._client.post("/query", json=payload)
         try:
             response.raise_for_status()
         except HTTPStatusError as exc:
@@ -419,10 +309,10 @@ class Base(Generic[ItemT]):
         return query_response
 
     @deprecated("This method has been renamed to `query` and will be removed in a future release.")
-    def fetch(
+    async def fetch(
         self: Self,
         *queries: QueryType,
         limit: int = 1000,
         last: str | None = None,
     ) -> QueryResponse[ItemT]:
-        return self.query(*queries, limit=limit, last=last)
+        return await self.query(*queries, limit=limit, last=last)
