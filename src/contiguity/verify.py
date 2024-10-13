@@ -9,8 +9,8 @@ class Verify:
     def number(self, number: str) -> bool:
         try:
             return phonenumbers.is_valid_number(phonenumbers.parse(number))
-        except Exception:
+        except phonenumbers.NumberParseException:
             return False
 
     def email(self, email: str) -> bool:
-        return bool(EMAIL_REGEX.match(email))
+        return EMAIL_REGEX.match(email) is not None

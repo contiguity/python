@@ -1,6 +1,8 @@
+from http import HTTPStatus
+
 import phonenumbers
 
-from contiguity._client import ApiClient
+from ._client import ApiClient
 
 
 class OTP:
@@ -8,10 +10,10 @@ class OTP:
         self._client = client
         self.debug = debug
 
-    def send(self, to, /, *, language, name=""):
+    def send(self, to: str, /, *, language, name: str = ""):
         e164 = phonenumbers.format_number(phonenumbers.parse(to), phonenumbers.PhoneNumberFormat.E164)
 
-        otp_handler = self._client.post(
+        response = self._client.post(
             "/otp/new",
             json={
                 "to": e164,
@@ -19,57 +21,56 @@ class OTP:
                 "name": name,
             },
         )
+        json_data = response.json()
 
-        otp_handler_response = otp_handler.json()
-
-        if otp_handler.status_code != 200:
-            raise ValueError(
-                f"Contiguity couldn't send your OTP. Received: {otp_handler.status_code} with reason: \"{otp_handler_response['message']}\""
+        if response.status_code != HTTPStatus.OK:
+            msg = (
+                "Contiguity couldn't send your OTP."
+                f" Received: {response.status_code} with reason: '{json_data['message']}'"
             )
+            raise ValueError(msg)
         if self.debug:
-            print(f"Contiguity successfully sent your OTP to {to} with OTP ID {otp_handler_response['otp_id']}")
+            print(f"Contiguity successfully sent your OTP to {to} with OTP ID {json_data['otp_id']}")
 
-        return otp_handler_response["otp_id"]
+        return json_data["otp_id"]
 
     def verify(self, otp, id):
-        otp_handler = self._client.post(
+        response = self._client.post(
             "/otp/verify",
             json={
                 "otp": otp,
                 "otp_id": id,
             },
         )
+        json_data = response.json()
 
-        otp_handler_response = otp_handler.json()
-
-        if otp_handler.status_code != 200:
-            raise ValueError(
-                f"Contiguity couldn't verify your OTP. Received: {otp_handler.status_code} with reason: \"{otp_handler_response['message']}\""
+        if response.status_code != HTTPStatus.OK:
+            msg = (
+                "Contiguity couldn't verify your OTP."
+                f" Received: {response.status_code} with reason: '{json_data['message']}'"
             )
+            raise ValueError(msg)
         if self.debug:
-            print(
-                f"Contiguity 'verified' your OTP ({otp}) with boolean verified status: {otp_handler_response['verified']}"
-            )
+            print(f"Contiguity verified your OTP ({otp}) with status: {json_data['verified']}")
 
-        return otp_handler_response["verified"]
+        return json_data["verified"]
 
     def resend(self, id, /):
-        otp_handler = self._client.post(
+        response = self._client.post(
             "/otp/resend",
             json={
                 "otp_id": id,
             },
         )
+        json_data = response.json()
 
-        otp_handler_response = otp_handler.json()
-
-        if otp_handler.status_code != 200:
-            raise ValueError(
-                f"Contiguity couldn't resend your OTP. Received: {otp_handler.status_code} with reason: \"{otp_handler_response['message']}\""
+        if response.status_code != HTTPStatus.OK:
+            msg = (
+                "Contiguity couldn't resend your OTP."
+                f" Received: {response.status_code} with reason: '{json_data['message']}'"
             )
+            raise ValueError(msg)
         if self.debug:
-            print(
-                f"Contiguity resent your OTP ({id}) with boolean resent status: {otp_handler_response['verified']}"
-            )
+            print(f"Contiguity resent your OTP ({id}) with status: {json_data['verified']}")
 
-        return otp_handler_response["verified"]
+        return json_data["verified"]

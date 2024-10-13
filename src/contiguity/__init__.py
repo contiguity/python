@@ -20,16 +20,17 @@ class Contiguity:
         self,
         *,
         token: str,
-        debug: bool = False,
         base_url: str = "https://api.contiguity.co",
         orwell_base_url: str = "https://orwell.contiguity.co",
+        debug: bool = False,
     ) -> None:
         if not token:
-            raise ValueError("Contiguity requires a token/API key to be provided via contiguity.login('token')")
+            msg = "Contiguity requires a token/API key to be provided via contiguity.login('token')"
+            raise ValueError(msg)
         self.token = token
-        self.debug = debug
         self.base_url = base_url
         self.orwell_base_url = orwell_base_url
+        self.debug = debug
         self.client = ApiClient(base_url=self.base_url, api_key=token.strip())
         self.orwell_client = ApiClient(base_url=self.orwell_base_url, api_key=token.strip())
 

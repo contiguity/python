@@ -1,6 +1,6 @@
-import json
+from http import HTTPStatus
 
-from contiguity._client import ApiClient
+from ._client import ApiClient
 
 
 class Quota:
@@ -9,15 +9,16 @@ class Quota:
         self.debug = debug
 
     def retrieve(self):
-        quota = self._client.get("/user/get/quota")
+        response = self._client.get("/user/get/quota")
+        json_data = response.json()
 
-        json_data = quota.json()
-
-        if quota.status_code != 200:
-            raise ValueError(
-                f"Contiguity had an issue finding your quota. Received {quota.status_code} with reason: \"{json_data['message']}\""
+        if response.status_code != HTTPStatus.OK:
+            msg = (
+                "Contiguity had an issue finding your quota."
+                f" Received {response.status_code} with reason: '{json_data['message']}'"
             )
+            raise ValueError(msg)
         if self.debug:
-            print(f"Contiguity successfully found your quota. Data:\n\n{json.dumps(json_data)}")
+            print(f"Contiguity successfully found your quota. Data:\n{response.text}")
 
         return json_data

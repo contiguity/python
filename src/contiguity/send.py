@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import json
-from typing import overload
+from http import HTTPStatus
+from typing import TYPE_CHECKING, overload
 
 import phonenumbers
 from htmlmin import minify
 
-from contiguity._client import ApiClient
+if TYPE_CHECKING:
+    from ._client import ApiClient
 
 
 class Send:
@@ -28,27 +29,31 @@ class Send:
         try:
             parsed_number = phonenumbers.parse(to, None)
             if not phonenumbers.is_valid_number(parsed_number):
-                raise ValueError("Contiguity requires phone numbers to follow the E.164 format. Formatting failed.")
-        except phonenumbers.phonenumberutil.NumberParseException:
-            raise ValueError("Contiguity requires phone numbers to follow the E.164 format. Parsing failed.")
+                msg = "Contiguity requires phone numbers to follow the E.164 format. Formatting failed."
+                raise ValueError(msg)
+        except phonenumbers.NumberParseException as exc:
+            msg = "Contiguity requires phone numbers to follow the E.164 format. Parsing failed."
+            raise ValueError(msg) from exc
 
-        text_handler = self._client.post(
+        response = self._client.post(
             "/send/text",
             json={
                 "to": phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164),
                 "message": message,
             },
         )
-        text_handler_response = text_handler.json()
+        json_data = response.json()
 
-        if text_handler.status_code != 200:
-            raise ValueError(
-                f"Contiguity couldn't send your message. Received: {text_handler.status_code} with reason: \"{text_handler_response['message']}\""
+        if response.status_code != HTTPStatus.OK:
+            msg = (
+                "Contiguity couldn't send your message."
+                f" Received: {response.status_code} with reason: '{json_data['message']}'"
             )
+            raise ValueError(msg)
         if self.debug:
-            print(f"Contiguity successfully sent your text to {to}. Crumbs:\n\n{json.dumps(text_handler_response)}")
+            print(f"Contiguity successfully sent your text to {to}. Crumbs:\n{response.text}")
 
-        return text_handler_response
+        return json_data
 
     @overload
     def email(
@@ -88,14 +93,15 @@ class Send:
         """
         Send an email.
         Args:
-            obj (dict): The object containing the email details.
-                obj['to'] (str): The recipient's email address.
-                obj['from'] (str): The sender's name. The email address is selected automatically. Configure at contiguity.co/dashboard
-                obj['subject'] (str): The email subject.
-                obj['text'] (str, optional): The plain text email body. Provide one body, or HTML will be prioritized if both are present.
-                obj['html'] (str, optional): The HTML email body. Provide one body.
-                obj['replyTo'] (str, optional): The reply-to email address.
-                obj['cc'] (str, optional): The CC email addresses.
+            to (str): The recipient's email address.
+            from (str): The sender's name. The email address is selected automatically.
+                Configure at contiguity.co/dashboard
+            subject (str): The email subject.
+            text (str, optional): The plain text email body.
+                Provide one body, or HTML will be prioritized if both are present.
+            html (str, optional): The HTML email body. Provide one body.
+            reply_to (str, optional): The reply-to email address.
+            cc (str, optional): The CC email addresses.
         Returns:
             dict: The response object.
         Raises:
@@ -115,15 +121,16 @@ class Send:
         if cc:
             email_payload["cc"] = cc
 
-        email_handler = self._client.post("/send/email", json=email_payload)
+        response = self._client.post("/send/email", json=email_payload)
+        json_data = response.json()
 
-        email_handler_response = email_handler.json()
-
-        if email_handler.status_code != 200:
-            raise ValueError(
-                f"Contiguity couldn't send your email. Received: {email_handler.status_code} with reason: \"{email_handler_response['message']}\""
+        if response.status_code != HTTPStatus.OK:
+            msg = (
+                "Contiguity couldn't send your email."
+                f" Received: {response.status_code} with reason: '{json_data['message']}'"
             )
+            raise ValueError(msg)
         if self.debug:
-            print(f"Contiguity successfully sent your email to {to}. Crumbs:\n\n{json.dumps(email_handler_response)}")
+            print(f"Contiguity successfully sent your email to {to}. Crumbs:\n{response.text}")
 
-        return email_handler_response
+        return json_data
