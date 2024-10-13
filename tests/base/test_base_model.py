@@ -7,7 +7,7 @@ import pytest
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-from contiguity_base import Base, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
+from contiguity import Base, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
 from tests import random_string
 
 load_dotenv()
