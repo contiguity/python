@@ -1,3 +1,5 @@
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -14,8 +16,6 @@ takeout/.DS_Store
 
 # Test code
 test.py
-*.lock
-*.toml
 
 # Distribution / packaging
 .Python
