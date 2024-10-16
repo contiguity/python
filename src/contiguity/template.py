@@ -12,7 +12,7 @@ class Template:
             file_path = Path(file_path)
             return minify(file_path.read_text())
         except OSError as exc:
-            msg = "Getting contents from files is not supported in the current environment."
+            msg = "reading files is not supported in the this environment"
             raise ValueError(msg) from exc
 
     async def online(self, file_path: str) -> Never:

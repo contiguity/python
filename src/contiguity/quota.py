@@ -1,5 +1,7 @@
 from http import HTTPStatus
 
+from typing_extensions import deprecated
+
 from ._client import ApiClient
 
 
@@ -8,17 +10,18 @@ class Quota:
         self._client = client
         self.debug = debug
 
-    def retrieve(self):
+    @deprecated("quota functionality will be removed in a future release")
+    def retrieve(self) -> dict:
         response = self._client.get("/user/get/quota")
-        json_data = response.json()
+        data = response.json()
 
         if response.status_code != HTTPStatus.OK:
             msg = (
                 "Contiguity had an issue finding your quota."
-                f" Received {response.status_code} with reason: '{json_data['message']}'"
+                f" Received {response.status_code} with reason: '{data['message']}'"
             )
             raise ValueError(msg)
         if self.debug:
-            print(f"Contiguity successfully found your quota. Data:\n{response.text}")
+            print(f"Contiguity successfully found your quota. Data:\n{data}")
 
-        return json_data
+        return data

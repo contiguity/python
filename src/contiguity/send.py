@@ -5,9 +5,23 @@ from typing import TYPE_CHECKING, overload
 
 import phonenumbers
 from htmlmin import minify
+from pydantic import BaseModel
+
+from ._common import Crumbs  # noqa: TCH001 Pydantic needs this to be outside of the TYPE_CHECKING block.
 
 if TYPE_CHECKING:
     from ._client import ApiClient
+
+
+class TextResponse(BaseModel):
+    message: str
+    crumbs: Crumbs
+
+
+class EmailResponse(BaseModel):
+    message: str
+    crumbs: Crumbs
+    email_id: str
 
 
 class Send:
@@ -15,7 +29,7 @@ class Send:
         self._client = client
         self.debug = debug
 
-    def text(self, to: str, message: str):
+    def text(self, to: str, message: str) -> TextResponse:
         """
         Send a text message.
         Args:
@@ -42,18 +56,18 @@ class Send:
                 "message": message,
             },
         )
-        json_data = response.json()
+        data = TextResponse.model_validate_json(response.content)
 
         if response.status_code != HTTPStatus.OK:
             msg = (
                 "Contiguity couldn't send your message."
-                f" Received: {response.status_code} with reason: '{json_data['message']}'"
+                f" Received: {response.status_code} with reason: '{data.message}'"
             )
             raise ValueError(msg)
         if self.debug:
-            print(f"Contiguity successfully sent your text to {to}. Crumbs:\n{response.text}")
+            print(f"Contiguity successfully sent your text to {to}. Crumbs:\n{data.crumbs}")
 
-        return json_data
+        return data
 
     @overload
     def email(
@@ -65,7 +79,7 @@ class Send:
         text: str,
         reply_to: str = "",
         cc: str = "",
-    ): ...
+    ) -> EmailResponse: ...
 
     @overload
     def email(
@@ -77,9 +91,9 @@ class Send:
         html: str,
         reply_to: str = "",
         cc: str = "",
-    ): ...
+    ) -> EmailResponse: ...
 
-    def email(
+    def email(  # noqa: PLR0913
         self,
         *,
         to: str,
@@ -89,7 +103,7 @@ class Send:
         cc: str = "",
         text: str | None = None,
         html: str | None = None,
-    ):
+    ) -> EmailResponse:
         """
         Send an email.
         Args:
@@ -122,15 +136,15 @@ class Send:
             email_payload["cc"] = cc
 
         response = self._client.post("/send/email", json=email_payload)
-        json_data = response.json()
+        data = EmailResponse.model_validate_json(response.content)
 
         if response.status_code != HTTPStatus.OK:
             msg = (
                 "Contiguity couldn't send your email."
-                f" Received: {response.status_code} with reason: '{json_data['message']}'"
+                f" Received: {response.status_code} with reason: '{data.message}'"
             )
             raise ValueError(msg)
         if self.debug:
-            print(f"Contiguity successfully sent your email to {to}. Crumbs:\n{response.text}")
+            print(f"Contiguity successfully sent your email to {to}. Crumbs:\n{data.crumbs}")
 
-        return json_data
+        return data
