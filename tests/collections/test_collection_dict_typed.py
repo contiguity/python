@@ -7,7 +7,7 @@ import pytest
 from dotenv import load_dotenv
 from pydantic import JsonValue
 
-from contiguity import Base, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
+from contiguity import Collection, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
 from tests import random_string
 
 load_dotenv()
@@ -28,88 +28,88 @@ def create_test_item(**kwargs: JsonValue) -> DictItemType:
 
 
 @pytest.fixture
-def base() -> Generator[Base[DictItemType], Any, None]:
-    base = Base("test_base_dict_typed", item_type=DictItemType)
-    for item in base.query().items:
-        base.delete(str(item["key"]))
-    yield base
-    for item in base.query().items:
-        base.delete(str(item["key"]))
+def db() -> Generator[Collection[DictItemType], Any, None]:
+    db = Collection("test_db_dict_typed", item_type=DictItemType)
+    for item in db.query().items:
+        db.delete(str(item["key"]))
+    yield db
+    for item in db.query().items:
+        db.delete(str(item["key"]))
 
 
-def test_bad_base_name() -> None:
-    with pytest.raises(ValueError, match="invalid Base name ''"):
-        Base("", item_type=DictItemType)
+def test_bad_db_name() -> None:
+    with pytest.raises(ValueError, match="invalid Collection name ''"):
+        Collection("", item_type=DictItemType)
 
 
-def test_bad_key(base: Base[DictItemType]) -> None:
+def test_bad_key(db: Collection[DictItemType]) -> None:
     with pytest.raises(InvalidKeyError):
-        base.get("")
+        db.get("")
     with pytest.raises(InvalidKeyError):
-        base.delete("")
+        db.delete("")
     with pytest.raises(InvalidKeyError):
-        base.update({"foo": "bar"}, key="")
+        db.update({"foo": "bar"}, key="")
 
 
-def test_get(base: Base[DictItemType]) -> None:
+def test_get(db: Collection[DictItemType]) -> None:
     item = create_test_item()
-    base.insert(item)
-    fetched_item = base.get("test_key")
+    db.insert(item)
+    fetched_item = db.get("test_key")
     assert fetched_item == item
 
 
-def test_get_nonexistent(base: Base[DictItemType]) -> None:
+def test_get_nonexistent(db: Collection[DictItemType]) -> None:
     with pytest.warns(DeprecationWarning):
-        assert base.get("nonexistent_key") is None
+        assert db.get("nonexistent_key") is None
 
 
-def test_get_default(base: Base[DictItemType]) -> None:
+def test_get_default(db: Collection[DictItemType]) -> None:
     for default_item in (None, "foo", 42, create_test_item()):
-        fetched_item = base.get("nonexistent_key", default=default_item)
+        fetched_item = db.get("nonexistent_key", default=default_item)
         assert fetched_item == default_item
 
 
-def test_delete(base: Base[DictItemType]) -> None:
+def test_delete(db: Collection[DictItemType]) -> None:
     item = create_test_item()
-    base.insert(item)
-    base.delete("test_key")
+    db.insert(item)
+    db.delete("test_key")
     with pytest.warns(DeprecationWarning):
-        assert base.get("test_key") is None
+        assert db.get("test_key") is None
 
 
-def test_insert(base: Base[DictItemType]) -> None:
+def test_insert(db: Collection[DictItemType]) -> None:
     item = create_test_item()
-    inserted_item = base.insert(item)
+    inserted_item = db.insert(item)
     assert inserted_item == item
 
 
-def test_insert_existing(base: Base[DictItemType]) -> None:
+def test_insert_existing(db: Collection[DictItemType]) -> None:
     item = create_test_item()
-    base.insert(item)
+    db.insert(item)
     with pytest.raises(ItemConflictError):
-        base.insert(item)
+        db.insert(item)
 
 
-def test_put(base: Base[DictItemType]) -> None:
+def test_put(db: Collection[DictItemType]) -> None:
     items = [create_test_item(key=f"test_key_{i}", field1=i) for i in range(3)]
     for _ in range(2):
-        response = base.put(*items)
+        response = db.put(*items)
         assert response == items
 
 
-def test_put_empty(base: Base[DictItemType]) -> None:
+def test_put_empty(db: Collection[DictItemType]) -> None:
     items = []
-    response = base.put(*items)
+    response = db.put(*items)
     assert response == items
 
 
-def test_put_too_many(base: Base[DictItemType]) -> None:
-    items = [create_test_item(key=f"test_key_{i}") for i in range(base.PUT_LIMIT + 1)]
-    with pytest.raises(ValueError, match=f"cannot put more than {base.PUT_LIMIT} items at a time"):
-        base.put(*items)
+def test_put_too_many(db: Collection[DictItemType]) -> None:
+    items = [create_test_item(key=f"test_key_{i}") for i in range(db.PUT_LIMIT + 1)]
+    with pytest.raises(ValueError, match=f"cannot put more than {db.PUT_LIMIT} items at a time"):
+        db.put(*items)
 
 
-def test_update(base: Base[DictItemType]) -> None:
+def test_update(db: Collection[DictItemType]) -> None:
     item = {
         "key": "test_key",
         "field1": random_string(),
@@ -120,15 +120,15 @@ def test_update(base: Base[DictItemType]) -> None:
         "field6": [1, 2],
         "field7": {"foo": "bar"},
     }
-    base.insert(item)
-    updated_item = base.update(
+    db.insert(item)
+    updated_item = db.update(
         {
             "field1": "updated_value",
-            "field2": base.util.trim(),
-            "field3": base.util.increment(2),
-            "field4": base.util.increment(-2),
-            "field5": base.util.append("baz"),
-            "field6": base.util.prepend([3, 4]),
+            "field2": db.util.trim(),
+            "field3": db.util.increment(2),
+            "field4": db.util.increment(-2),
+            "field5": db.util.append("baz"),
+            "field6": db.util.prepend([3, 4]),
         },
         key="test_key",
     )
@@ -143,27 +143,27 @@ def test_update(base: Base[DictItemType]) -> None:
     }
 
 
-def test_update_nonexistent(base: Base[DictItemType]) -> None:
+def test_update_nonexistent(db: Collection[DictItemType]) -> None:
     with pytest.raises(ItemNotFoundError):
-        base.update({"foo": "bar"}, key=random_string())
+        db.update({"foo": "bar"}, key=random_string())
 
 
-def test_update_empty(base: Base[DictItemType]) -> None:
+def test_update_empty(db: Collection[DictItemType]) -> None:
     with pytest.raises(ValueError, match="no updates provided"):
-        base.update({}, key="test_key")
+        db.update({}, key="test_key")
 
 
-def test_query_empty(base: Base[DictItemType]) -> None:
+def test_query_empty(db: Collection[DictItemType]) -> None:
     items = [create_test_item(key=f"test_key_{i}", field1=i) for i in range(5)]
-    base.put(*items)
-    response = base.query()
+    db.put(*items)
+    response = db.query()
     assert response == QueryResponse(count=5, last_key=None, items=items)
 
 
-def test_query(base: Base[DictItemType]) -> None:
+def test_query(db: Collection[DictItemType]) -> None:
     items = [create_test_item(key=f"test_key_{i}", field1=i) for i in range(5)]
-    base.put(*items)
-    response = base.query({"field1?gt": 1})
+    db.put(*items)
+    response = db.query({"field1?gt": 1})
     assert response == QueryResponse(
         count=3,
         last_key=None,
