@@ -9,6 +9,7 @@ from .collections import (
     ItemNotFoundError,
     QueryResponse,
 )
+from .collections.compatibility import AsyncBase, Base
 from .otp import OTP
 from .quota import Quota
 from .send import Send
@@ -55,7 +56,9 @@ def login(token: str, /, *, debug: bool = False) -> Contiguity:
 
 
 __all__ = (
+    "AsyncBase",
     "AsyncCollection",
+    "Base",
     "Contiguity",
     "Send",
     "Verify",
