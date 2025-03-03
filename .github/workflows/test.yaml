@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHON_VERSION: "3.9"
+      CONTIGUITY_DATA_KEY: ${{ secrets.CONTIGUITY_DATA_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
