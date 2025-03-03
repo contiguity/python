@@ -4,7 +4,6 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, overload
 
 import phonenumbers
-from htmlmin import minify
 from pydantic import BaseModel
 
 from ._common import Crumbs  # noqa: TCH001 Pydantic needs this to be outside of the TYPE_CHECKING block.
@@ -125,7 +124,7 @@ class Send:
             "to": to,
             "from": from_,
             "subject": subject,
-            "body": minify(html) if html else text,
+            "body": html or text,
             "contentType": "html" if html else "text",
         }
 
