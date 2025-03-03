@@ -28,6 +28,10 @@ jobs:
 
       - name: Install the project
         run: uv sync --locked --all-extras --dev
+        
+      - name: Check length of CONTIGUITY_DATA_KEY
+        run: |
+          echo "Length: ${#CONTIGUITY_DATA_KEY}"
 
       - name: Run tests
         run: uv run pytest tests
