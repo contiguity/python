@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.9"
 resolution-markers = [
     "python_full_version < '3.13'",
@@ -58,10 +59,8 @@ wheels = [
 
 [[package]]
 name = "contiguity"
-version = "2.0.0"
 source = { editable = "." }
 dependencies = [
-    { name = "htmlmin" },
     { name = "httpx" },
     { name = "phonenumbers" },
     { name = "pydantic" },
@@ -79,7 +78,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "htmlmin", specifier = ">=0.1.12" },
     { name = "httpx", specifier = ">=0.27.2" },
     { name = "phonenumbers", specifier = ">=8.13.47,<9.0.0" },
     { name = "pydantic", specifier = ">=2.9.0,<3.0.0" },
@@ -204,12 +202,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/f5/38/3af3d3633a34a3316
 wheels = [
     { url = "https://files.pythonhosted.org/packages/95/04/ff642e65ad6b90db43e668d70ffb6736436c7ce41fcc549f4e9472234127/h11-0.14.0-py3-none-any.whl", hash = "sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761", size = 58259 },
 ]
-
-[[package]]
-name = "htmlmin"
-version = "0.1.12"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b3/e7/fcd59e12169de19f0131ff2812077f964c6b960e7c09804d30a7bf2ab461/htmlmin-0.1.12.tar.gz", hash = "sha256:50c1ef4630374a5d723900096a961cff426dff46b48f34d194a81bbe14eca178", size = 19940 }
 
 [[package]]
 name = "httpcore"
