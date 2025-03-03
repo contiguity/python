@@ -34,4 +34,4 @@ jobs:
           echo "Length: ${#CONTIGUITY_DATA_KEY}"
 
       - name: Run tests
-        run: uv run pytest tests
+        run: CONTIGUITY_DATA_KEY=${CONTIGUITY_DATA_KEY} uv run pytest tests
