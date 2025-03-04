@@ -20,7 +20,6 @@ class TextResponse(BaseModel):
 class EmailResponse(BaseModel):
     message: str
     crumbs: Crumbs
-    email_id: str
 
 
 class Send:
