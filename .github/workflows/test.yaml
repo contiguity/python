@@ -24,14 +24,10 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v5
 
       - name: Install the project
         run: uv sync --locked --all-extras --dev
-        
-      - name: Check length of CONTIGUITY_DATA_KEY
-        run: |
-          echo "Length: ${#CONTIGUITY_DATA_KEY}"
 
       - name: Run tests
-        run: CONTIGUITY_DATA_KEY=${CONTIGUITY_DATA_KEY} uv run pytest tests
+        run: uv run pytest tests

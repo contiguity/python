@@ -20,11 +20,15 @@ jobs:
   test:
     name: Test
     uses: ./.github/workflows/test.yaml
+    secrets: inherit
 
   release:
     name: Release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [lint, build, test]
+    needs:
+      - lint
+      - build
+      - test
     permissions:
       contents: write
       id-token: write
