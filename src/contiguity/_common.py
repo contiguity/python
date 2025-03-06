@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+import msgspec
 
 
-class Crumbs(BaseModel):
+class Crumbs(msgspec.Struct):
     plan: str
     quota: int
     type: str

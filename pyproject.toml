@@ -35,8 +35,8 @@ classifiers = [
 ]
 dependencies = [
     "httpx>=0.27.2",
+    "msgspec>=0.19.0",
     "phonenumbers>=8.13.47,<9.0.0",
-    "pydantic>=2.9.0,<3.0.0",
     "typing-extensions>=4.12.2,<5.0.0",
 ]
 
@@ -66,6 +66,9 @@ target-version = "py39"
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = ["A", "D", "T201"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
 
 [tool.pyright]
 venvPath = "."

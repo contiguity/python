@@ -1,21 +1,17 @@
-from __future__ import annotations
-
 from collections.abc import Mapping, Sequence
 from datetime import datetime
-from typing import Any, Generic, TypeVar, Union
+from typing import Generic, TypeVar, Union
 from urllib.parse import quote
 
-from pydantic import BaseModel
-from pydantic import JsonValue as DataType
-from typing_extensions import Self
+import msgspec
 
 from .exceptions import InvalidKeyError
 
 TimestampType = Union[int, datetime]
+DataType = Union[list["DataType"], dict[str, "DataType"], str, bool, int, float, None]
 QueryType = Mapping[str, DataType]
 
-ItemType = Union[Mapping[str, Any], BaseModel]
-ItemT = TypeVar("ItemT", bound=ItemType)
+ItemT = TypeVar("ItemT", bound=msgspec.Struct)
 DefaultItemT = TypeVar("DefaultItemT")
 
 
@@ -26,13 +22,13 @@ class Unset:
 UNSET = Unset()
 
 
-class BaseItem(BaseModel):
+class BaseItem(msgspec.Struct):
     key: str
 
 
-class QueryResponse(BaseModel, Generic[ItemT]):
+class QueryResponse(msgspec.Struct, Generic[ItemT]):
     count: int = 0
-    last_key: Union[str, None] = None  # noqa: UP007 Pydantic doesn't support `X | Y` syntax in Python 3.9.
+    last_key: Union[str, None] = None
     items: Sequence[ItemT] = []
 
 
@@ -45,12 +41,12 @@ class Trim(UpdateOperation):
 
 
 class Increment(UpdateOperation):
-    def __init__(self: Increment, value: int = 1, /) -> None:
+    def __init__(self, value: int = 1, /) -> None:
         self.value = value
 
 
 class Append(UpdateOperation):
-    def __init__(self: Append, value: DataType, /) -> None:
+    def __init__(self, value: DataType, /) -> None:
         if isinstance(value, (list, tuple)):
             self.value = value
         else:
@@ -79,7 +75,7 @@ class Updates:
         return Prepend(value)
 
 
-class UpdatePayload(BaseModel):
+class UpdatePayload(msgspec.Struct):
     set: dict[str, DataType] = {}
     increment: dict[str, int] = {}
     append: dict[str, Sequence[DataType]] = {}
@@ -87,7 +83,7 @@ class UpdatePayload(BaseModel):
     delete: list[str] = []
 
     @classmethod
-    def from_updates_mapping(cls: type[Self], updates: Mapping[str, DataType | UpdateOperation], /) -> Self:
+    def from_updates_mapping(cls, updates: Mapping[str, "DataType | UpdateOperation"], /) -> "UpdatePayload":
         set = {}
         increment = {}
         append = {}
