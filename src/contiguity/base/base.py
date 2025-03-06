@@ -2,7 +2,7 @@
 # - [ ] new docstrings
 # - [ ] test expiring items
 # - [ ] support dataclasses
-# - [ ] support models for queries
+# - [ ] support structs for queries
 # - [ ] examples
 # - [ ] add async
 # - [ ] add drive support
@@ -17,9 +17,8 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Generic, Literal, overload
 from warnings import warn
 
+import msgspec
 from httpx import HTTPStatusError
-from pydantic import BaseModel, TypeAdapter
-from pydantic import JsonValue as DataType
 from typing_extensions import deprecated
 
 from contiguity._auth import get_data_key, get_project_id
@@ -27,6 +26,7 @@ from contiguity._client import ApiClient, ApiError
 
 from .common import (
     UNSET,
+    DataType,
     DefaultItemT,
     ItemT,
     QueryResponse,
@@ -42,7 +42,6 @@ from .exceptions import ItemConflictError, ItemNotFoundError
 
 if TYPE_CHECKING:
     from httpx import Response as HttpxResponse
-    from typing_extensions import Self
 
 
 class Base(Generic[ItemT]):
@@ -51,7 +50,7 @@ class Base(Generic[ItemT]):
 
     @overload
     def __init__(
-        self: Self,
+        self,
         name: str,
         /,
         *,
@@ -66,7 +65,7 @@ class Base(Generic[ItemT]):
     @overload
     @deprecated("The `project_key` parameter has been renamed to `data_key`.")
     def __init__(
-        self: Self,
+        self,
         name: str,
         /,
         *,
@@ -79,7 +78,7 @@ class Base(Generic[ItemT]):
     ) -> None: ...
 
     def __init__(  # noqa: PLR0913
-        self: Self,
+        self,
         name: str,
         /,
         *,
@@ -89,7 +88,7 @@ class Base(Generic[ItemT]):
         project_id: str | None = None,
         host: str | None = None,
         api_version: str = "v1",
-        json_decoder: type[json.JSONDecoder] = json.JSONDecoder,  # Only used when item_type is not a Pydantic model.
+        json_decoder: type[json.JSONDecoder] = json.JSONDecoder,  # Only used when item_type is not a msgspec struct.
     ) -> None:
         if not name:
             msg = f"invalid Base name '{name}'"
@@ -111,7 +110,7 @@ class Base(Generic[ItemT]):
 
     @overload
     def _response_as_item_type(
-        self: Self,
+        self,
         response: HttpxResponse,
         /,
         *,
@@ -119,7 +118,7 @@ class Base(Generic[ItemT]):
     ) -> ItemT: ...
     @overload
     def _response_as_item_type(
-        self: Self,
+        self,
         response: HttpxResponse,
         /,
         *,
@@ -127,7 +126,7 @@ class Base(Generic[ItemT]):
     ) -> Sequence[ItemT]: ...
 
     def _response_as_item_type(
-        self: Self,
+        self,
         response: HttpxResponse,
         /,
         *,
@@ -139,12 +138,12 @@ class Base(Generic[ItemT]):
             raise ApiError(exc.response.text) from exc
         if self.item_type:
             if sequence:
-                return TypeAdapter(Sequence[self.item_type]).validate_json(response.content)
-            return TypeAdapter(self.item_type).validate_json(response.content)
+                return msgspec.json.decode(response.content, type=Sequence[self.item_type])
+            return msgspec.json.decode(response.content, type=self.item_type)
         return response.json(cls=self.json_decoder)
 
     def _insert_expires_attr(
-        self: Self,
+        self,
         item: ItemT | Mapping[str, DataType],
         expire_in: int | None = None,
         expire_at: TimestampType | None = None,
@@ -153,7 +152,7 @@ class Base(Generic[ItemT]):
             msg = "cannot use both expire_in and expire_at"
             raise ValueError(msg)
 
-        item_dict = item.model_dump() if isinstance(item, BaseModel) else dict(item)
+        item_dict = msgspec.structs.asdict(item) if isinstance(item, msgspec.Struct) else dict(item)
 
         if not expire_in and not expire_at:
             return item_dict
@@ -169,16 +168,16 @@ class Base(Generic[ItemT]):
         return item_dict
 
     @overload
-    def get(self: Self, key: str, /) -> ItemT | None: ...
+    def get(self, key: str, /) -> ItemT | None: ...
 
     @overload
-    def get(self: Self, key: str, /, *, default: ItemT) -> ItemT: ...
+    def get(self, key: str, /, *, default: ItemT) -> ItemT: ...
 
     @overload
-    def get(self: Self, key: str, /, *, default: DefaultItemT) -> ItemT | DefaultItemT: ...
+    def get(self, key: str, /, *, default: DefaultItemT) -> ItemT | DefaultItemT: ...
 
     def get(
-        self: Self,
+        self,
         key: str,
         /,
         *,
@@ -198,7 +197,7 @@ class Base(Generic[ItemT]):
 
         return self._response_as_item_type(response, sequence=False)
 
-    def delete(self: Self, key: str, /) -> None:
+    def delete(self, key: str, /) -> None:
         """Delete an item from the Base."""
         key = check_key(key)
         response = self._client.delete(f"/items/{key}")
@@ -208,7 +207,7 @@ class Base(Generic[ItemT]):
             raise ApiError(exc.response.text) from exc
 
     def insert(
-        self: Self,
+        self,
         item: ItemT,
         /,
         *,
@@ -227,7 +226,7 @@ class Base(Generic[ItemT]):
         return returned_item[0]
 
     def put(
-        self: Self,
+        self,
         *items: ItemT,
         expire_in: int | None = None,
         expire_at: TimestampType | None = None,
@@ -248,7 +247,7 @@ class Base(Generic[ItemT]):
 
     @deprecated("This method will be removed in a future release. You can pass multiple items to `put`.")
     def put_many(
-        self: Self,
+        self,
         items: Sequence[ItemT],
         /,
         *,
@@ -258,7 +257,7 @@ class Base(Generic[ItemT]):
         return self.put(*items, expire_in=expire_in, expire_at=expire_at)
 
     def update(
-        self: Self,
+        self,
         updates: Mapping[str, DataType | UpdateOperation],
         /,
         *,
@@ -282,14 +281,14 @@ class Base(Generic[ItemT]):
             expire_at=expire_at,
         )
 
-        response = self._client.patch(f"/items/{key}", json={"updates": payload.model_dump()})
+        response = self._client.patch(f"/items/{key}", json={"updates": msgspec.structs.asdict(payload)})
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise ItemNotFoundError(key)
 
         return self._response_as_item_type(response, sequence=False)
 
     def query(
-        self: Self,
+        self,
         *queries: QueryType,
         limit: int = 1000,
         last: str | None = None,
@@ -311,15 +310,11 @@ class Base(Generic[ItemT]):
             response.raise_for_status()
         except HTTPStatusError as exc:
             raise ApiError(exc.response.text) from exc
-        query_response = QueryResponse[ItemT].model_validate_json(response.content)
-        if self.item_type:
-            # HACK: Pydantic model_validate_json doesn't validate Sequence[ItemT] properly. # noqa: FIX004
-            query_response.items = TypeAdapter(Sequence[self.item_type]).validate_python(query_response.items)
-        return query_response
+        return msgspec.json.decode(response.content, type=QueryResponse[ItemT])
 
     @deprecated("This method has been renamed to `query` and will be removed in a future release.")
     def fetch(
-        self: Self,
+        self,
         *queries: QueryType,
         limit: int = 1000,
         last: str | None = None,

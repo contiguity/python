@@ -1,9 +1,7 @@
-from __future__ import annotations
-
 import os
 
 
-def _get_env_var(var_name: str, friendly_name: str | None = None) -> str:
+def _get_env_var(var_name: str, friendly_name: "str | None" = None) -> str:
     value = os.getenv(var_name, "")
     if not value:
         msg = f"no {friendly_name or var_name} provided"

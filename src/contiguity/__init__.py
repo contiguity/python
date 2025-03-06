@@ -47,20 +47,20 @@ def login(token: str, /, *, debug: bool = False) -> Contiguity:
 
 
 __all__ = (
-    "AsyncBase",
-    "Contiguity",
-    "Send",
-    "Verify",
-    "EmailAnalytics",
-    "Quota",
     "OTP",
-    "Template",
+    "AsyncBase",
     "Base",
     "BaseItem",
+    "Contiguity",
+    "EmailAnalytics",
     "InvalidKeyError",
     "ItemConflictError",
     "ItemNotFoundError",
     "QueryResponse",
+    "Quota",
+    "Send",
+    "Template",
+    "Verify",
     "login",
 )
 __version__ = "2.0.0"

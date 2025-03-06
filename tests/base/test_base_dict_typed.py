@@ -1,30 +1,15 @@
-# ruff: noqa: S101, S311, PLR2004
-import random
-from collections.abc import Generator, Mapping
+from collections.abc import Generator
 from typing import Any
 
 import pytest
 from dotenv import load_dotenv
-from pydantic import JsonValue
 
 from contiguity import Base, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
 from tests import random_string
+from tests.base import DictItemType
+from tests.base import create_test_item_dict as create_test_item
 
 load_dotenv()
-
-DictItemType = Mapping[str, JsonValue]
-
-
-def create_test_item(**kwargs: JsonValue) -> DictItemType:
-    kwargs.setdefault("key", "test_key")
-    kwargs.setdefault("field1", random.randint(1, 1000))
-    kwargs.setdefault("field2", random_string())
-    kwargs.setdefault("field3", 1)
-    kwargs.setdefault("field4", 0)
-    kwargs.setdefault("field5", ["foo", "bar"])
-    kwargs.setdefault("field6", [1, 2])
-    kwargs.setdefault("field7", {"foo": "bar"})
-    return kwargs
 
 
 @pytest.fixture
