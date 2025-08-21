@@ -3,10 +3,8 @@ from __future__ import annotations
 from http import HTTPStatus
 from typing import overload
 
-import msgspec
-
 from ._product import BaseProduct
-from ._response import BaseResponse, ErrorResponse
+from ._response import BaseResponse, ErrorResponse, decode_response
 
 
 class EmailResponse(BaseResponse):
@@ -83,11 +81,11 @@ class Email(BaseProduct):
         response = self._client.post("/send/email", json=email_payload)
 
         if response.status_code != HTTPStatus.OK:
-            data = msgspec.json.decode(response.content, type=ErrorResponse)
+            data = decode_response(response.content, type=ErrorResponse)
             msg = f"failed to send email. {response.status_code} {data.error}"
             raise ValueError(msg)
 
-        data = msgspec.json.decode(response.content, type=EmailResponse)
+        data = decode_response(response.content, type=EmailResponse)
         if self.debug:
             print(f"successfully sent email to {to}")
 

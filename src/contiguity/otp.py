@@ -3,11 +3,10 @@ from __future__ import annotations
 from enum import Enum
 from http import HTTPStatus
 
-import msgspec
 import phonenumbers
 
 from ._product import BaseProduct
-from ._response import BaseResponse, ErrorResponse
+from ._response import BaseResponse, ErrorResponse, decode_response
 
 
 class OTPLanguage(str, Enum):
@@ -82,11 +81,11 @@ class OTP(BaseProduct):
         )
 
         if response.status_code != HTTPStatus.OK:
-            data = msgspec.json.decode(response.content, type=ErrorResponse)
+            data = decode_response(response.content, type=ErrorResponse)
             msg = f"failed to send OTP. {response.status_code} {data.error}"
             raise ValueError(msg)
 
-        data = msgspec.json.decode(response.content, type=OTPSendResponse)
+        data = decode_response(response.content, type=OTPSendResponse)
         if self.debug:
             print(f"successfully sent OTP {data.otp_id} to {to}")
 
@@ -101,11 +100,11 @@ class OTP(BaseProduct):
         )
 
         if response.status_code != HTTPStatus.OK:
-            data = msgspec.json.decode(response.content, type=ErrorResponse)
+            data = decode_response(response.content, type=ErrorResponse)
             msg = f"failed to resend OTP. {response.status_code} {data.error}"
             raise ValueError(msg)
 
-        data = msgspec.json.decode(response.content, type=OTPResendResponse)
+        data = decode_response(response.content, type=OTPResendResponse)
         if self.debug:
             print(f"successfully resent OTP {otp_id} with status: {data.resent}")
 
@@ -121,11 +120,11 @@ class OTP(BaseProduct):
         )
 
         if response.status_code != HTTPStatus.OK:
-            data = msgspec.json.decode(response.content, type=ErrorResponse)
+            data = decode_response(response.content, type=ErrorResponse)
             msg = f"failed to verify OTP. {response.status_code} {data.error}"
             raise ValueError(msg)
 
-        data = msgspec.json.decode(response.content, type=OTPVerifyResponse)
+        data = decode_response(response.content, type=OTPVerifyResponse)
         if self.debug:
             print(f"successfully verified OTP ({otp}) with status: {data.verified}")
 

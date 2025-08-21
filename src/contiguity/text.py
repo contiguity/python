@@ -1,10 +1,9 @@
 from http import HTTPStatus
 
-import msgspec
 import phonenumbers
 
 from ._product import BaseProduct
-from ._response import BaseResponse, ErrorResponse
+from ._response import BaseResponse, ErrorResponse, decode_response
 
 
 class TextResponse(BaseResponse):
@@ -41,10 +40,11 @@ class Text(BaseProduct):
         )
 
         if response.status_code != HTTPStatus.OK:
+            data = decode_response(response.content, type=ErrorResponse)
             msg = f"failed to send message. {response.status_code} {data.error}"
             raise ValueError(msg)
 
-        data = msgspec.json.decode(response.content, type=TextResponse)
+        data = decode_response(response.content, type=TextResponse)
         if self.debug:
             print(f"successfully sent text to {to}")
 
