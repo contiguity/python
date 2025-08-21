@@ -23,7 +23,6 @@ class ApiClient(HttpxClient):
         super().__init__(
             headers={
                 "Content-Type": "application/json",
-                "X-API-Key": api_key,
                 "Authorization": f"Token {api_key}",
             },
             timeout=timeout,
@@ -44,7 +43,6 @@ class AsyncApiClient(HttpxAsyncClient):
         super().__init__(
             headers={
                 "Content-Type": "application/json",
-                "X-API-Key": api_key,
                 "Authorization": f"Token {api_key}",
             },
             timeout=timeout,
