@@ -8,9 +8,8 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Generic, Literal, overload
 from warnings import warn
 
+import msgspec
 from httpx import HTTPStatusError
-from pydantic import BaseModel, TypeAdapter
-from pydantic import JsonValue as DataType
 from typing_extensions import deprecated
 
 from contiguity._auth import get_data_key, get_project_id
@@ -18,6 +17,7 @@ from contiguity._client import ApiError, AsyncApiClient
 
 from .common import (
     UNSET,
+    DataType,
     DefaultItemT,
     ItemT,
     QueryResponse,
@@ -129,9 +129,7 @@ class AsyncBase(Generic[ItemT]):
         except HTTPStatusError as exc:
             raise ApiError(exc.response.text) from exc
         if self.item_type:
-            if sequence:
-                return TypeAdapter(Sequence[self.item_type]).validate_json(response.content)
-            return TypeAdapter(self.item_type).validate_json(response.content)
+            return msgspec.json.decode(response.content, type=Sequence[self.item_type] if sequence else self.item_type)
         return response.json(cls=self.json_decoder)
 
     def _insert_expires_attr(
@@ -144,7 +142,7 @@ class AsyncBase(Generic[ItemT]):
             msg = "cannot use both expire_in and expire_at"
             raise ValueError(msg)
 
-        item_dict = item.model_dump() if isinstance(item, BaseModel) else dict(item)
+        item_dict = msgspec.to_builtins(item) if isinstance(item, msgspec.Struct) else dict(item)
 
         if not expire_in and not expire_at:
             return item_dict
@@ -273,7 +271,7 @@ class AsyncBase(Generic[ItemT]):
             expire_at=expire_at,
         )
 
-        response = await self._client.patch(f"/items/{key}", json={"updates": payload.model_dump()})
+        response = await self._client.patch(f"/items/{key}", json={"updates": msgspec.to_builtins(payload)})
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise ItemNotFoundError(key)
 
@@ -302,11 +300,13 @@ class AsyncBase(Generic[ItemT]):
             response.raise_for_status()
         except HTTPStatusError as exc:
             raise ApiError(exc.response.text) from exc
-        query_response = QueryResponse[ItemT].model_validate_json(response.content)
-        if self.item_type:
-            # HACK: Pydantic model_validate_json doesn't validate Sequence[ItemT] properly. # noqa: FIX004
-            query_response.items = TypeAdapter(Sequence[self.item_type]).validate_python(query_response.items)
-        return query_response
+        return msgspec.json.decode(response.content, type=QueryResponse[ItemT])
+
+        # query_response = QueryResponse[ItemT].model_validate_json(response.content)
+        # if self.item_type:
+        #     # HACK: Pydantic model_validate_json doesn't validate Sequence[ItemT] properly. # noqa: FIX004
+        #     query_response.items = msgspec.json.decode(query_response.items, type=Sequence[self.item_type])
+        # return query_response
 
     @deprecated("This method has been renamed to `query` and will be removed in a future release.")
     async def fetch(

@@ -14,7 +14,7 @@ class ApiClient(HttpxClient):
     def __init__(
         self: ApiClient,
         *,
-        base_url: str = "https://api.contiguity.co",
+        base_url: str = "https://api.contiguity.com",
         api_key: str | None = None,
         timeout: int = 5,
     ) -> None:
@@ -35,7 +35,7 @@ class AsyncApiClient(HttpxAsyncClient):
     def __init__(
         self: AsyncApiClient,
         *,
-        base_url: str = "https://api.contiguity.co",
+        base_url: str = "https://api.contiguity.com",
         api_key: str | None = None,
         timeout: int = 5,
     ) -> None:

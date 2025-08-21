@@ -3,69 +3,22 @@ from __future__ import annotations
 from http import HTTPStatus
 from typing import TYPE_CHECKING, overload
 
-import phonenumbers
-from pydantic import BaseModel
+import msgspec
 
-from ._common import Crumbs  # noqa: TCH001 Pydantic needs this to be outside of the TYPE_CHECKING block.
+from ._response import BaseResponse, ErrorResponse
 
 if TYPE_CHECKING:
     from ._client import ApiClient
 
 
-class TextResponse(BaseModel):
+class EmailResponse(BaseResponse):
     message: str
-    crumbs: Crumbs
 
 
-class EmailResponse(BaseModel):
-    message: str
-    crumbs: Crumbs
-
-
-class Send:
+class Email:
     def __init__(self, *, client: ApiClient, debug: bool = False) -> None:
         self._client = client
         self.debug = debug
-
-    def text(self, to: str, message: str) -> TextResponse:
-        """
-        Send a text message.
-        Args:
-            to (str): The recipient's phone number.
-            message (str): The message to send.
-        Returns:
-            dict: The response object.
-        Raises:
-            ValueError: Raises an error if required fields are missing or sending the message fails.
-        """
-        try:
-            parsed_number = phonenumbers.parse(to, None)
-            if not phonenumbers.is_valid_number(parsed_number):
-                msg = "Contiguity requires phone numbers to follow the E.164 format. Formatting failed."
-                raise ValueError(msg)
-        except phonenumbers.NumberParseException as exc:
-            msg = "Contiguity requires phone numbers to follow the E.164 format. Parsing failed."
-            raise ValueError(msg) from exc
-
-        response = self._client.post(
-            "/send/text",
-            json={
-                "to": phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164),
-                "message": message,
-            },
-        )
-        data = TextResponse.model_validate_json(response.content)
-
-        if response.status_code != HTTPStatus.OK:
-            msg = (
-                "Contiguity couldn't send your message."
-                f" Received: {response.status_code} with reason: '{data.message}'"
-            )
-            raise ValueError(msg)
-        if self.debug:
-            print(f"Contiguity successfully sent your text to {to}. Crumbs:\n{data.crumbs}")
-
-        return data
 
     @overload
     def email(
@@ -134,15 +87,14 @@ class Send:
             email_payload["cc"] = cc
 
         response = self._client.post("/send/email", json=email_payload)
-        data = EmailResponse.model_validate_json(response.content)
 
         if response.status_code != HTTPStatus.OK:
-            msg = (
-                "Contiguity couldn't send your email."
-                f" Received: {response.status_code} with reason: '{data.message}'"
-            )
+            data = msgspec.json.decode(response.content, type=ErrorResponse)
+            msg = f"Contiguity couldn't send your email. Received: {response.status_code} with reason: '{data.error}'"
             raise ValueError(msg)
+
+        data = msgspec.json.decode(response.content, type=EmailResponse)
         if self.debug:
-            print(f"Contiguity successfully sent your email to {to}. Crumbs:\n{data.crumbs}")
+            print(f"Contiguity successfully sent your email to {to}")
 
         return data

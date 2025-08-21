@@ -5,16 +5,16 @@ from datetime import datetime
 from typing import Any, Generic, TypeVar, Union
 from urllib.parse import quote
 
-from pydantic import BaseModel
-from pydantic import JsonValue as DataType
+from msgspec import Struct
 from typing_extensions import Self
 
 from .exceptions import InvalidKeyError
 
+DataType = Union[str, int, float, bool, None, Sequence["DataType"], Mapping[str, "DataType"]]
 TimestampType = Union[int, datetime]
 QueryType = Mapping[str, DataType]
 
-ItemType = Union[Mapping[str, Any], BaseModel]
+ItemType = Union[Mapping[str, Any], Struct]
 ItemT = TypeVar("ItemT", bound=ItemType)
 DefaultItemT = TypeVar("DefaultItemT")
 
@@ -26,11 +26,11 @@ class Unset:
 UNSET = Unset()
 
 
-class BaseItem(BaseModel):
+class BaseItem(Struct):
     key: str
 
 
-class QueryResponse(BaseModel, Generic[ItemT]):
+class QueryResponse(Struct, Generic[ItemT]):
     count: int = 0
     last_key: Union[str, None] = None  # noqa: UP007 Pydantic doesn't support `X | Y` syntax in Python 3.9.
     items: Sequence[ItemT] = []
@@ -79,7 +79,7 @@ class Updates:
         return Prepend(value)
 
 
-class UpdatePayload(BaseModel):
+class UpdatePayload(Struct):
     set: dict[str, DataType] = {}
     increment: dict[str, int] = {}
     append: dict[str, Sequence[DataType]] = {}

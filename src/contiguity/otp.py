@@ -4,10 +4,10 @@ from enum import Enum
 from http import HTTPStatus
 from typing import TYPE_CHECKING
 
+import msgspec
 import phonenumbers
-from pydantic import BaseModel
 
-from ._common import Crumbs  # noqa: TCH001 Pydantic needs this to be outside of the TYPE_CHECKING block.
+from ._response import BaseResponse, ErrorResponse
 
 if TYPE_CHECKING:
     from ._client import ApiClient
@@ -52,19 +52,15 @@ class OTPLanguage(str, Enum):
     VIETNAMESE = "vi"
 
 
-class OTPSendResponse(BaseModel):
-    message: str
-    crumbs: Crumbs
+class OTPSendResponse(BaseResponse):
     otp_id: str
 
 
-class OTPResendResponse(BaseModel):
-    message: str
+class OTPResendResponse(BaseResponse):
     resent: bool
 
 
-class OTPVerifyResponse(BaseModel):
-    message: str
+class OTPVerifyResponse(BaseResponse):
     verified: bool
 
 
@@ -91,11 +87,13 @@ class OTP:
                 "name": name,
             },
         )
-        data = OTPSendResponse.model_validate_json(response.content)
 
         if response.status_code != HTTPStatus.OK:
-            msg = f"Contiguity couldn't send your OTP. Received: {response.status_code} with reason: '{data.message}'"
+            data = msgspec.json.decode(response.content, type=ErrorResponse)
+            msg = f"Contiguity couldn't send your OTP. Received: {response.status_code} with reason: '{data.error}'"
             raise ValueError(msg)
+
+        data = msgspec.json.decode(response.content, type=OTPSendResponse)
         if self.debug:
             print(f"Contiguity successfully sent your OTP to {to} with OTP ID {data.otp_id}")
 
@@ -108,14 +106,13 @@ class OTP:
                 "otp_id": otp_id,
             },
         )
-        data = OTPResendResponse.model_validate_json(response.content)
 
         if response.status_code != HTTPStatus.OK:
-            msg = (
-                "Contiguity couldn't resend your OTP."
-                f" Received: {response.status_code} with reason: '{data.message}'"
-            )
+            data = msgspec.json.decode(response.content, type=ErrorResponse)
+            msg = f"Contiguity couldn't resend your OTP. Received: {response.status_code} with reason: '{data.error}'"
             raise ValueError(msg)
+
+        data = msgspec.json.decode(response.content, type=OTPResendResponse)
         if self.debug:
             print(f"Contiguity resent your OTP ({id}) with status: {data.resent}")
 
@@ -129,14 +126,13 @@ class OTP:
                 "otp_id": otp_id,
             },
         )
-        data = OTPVerifyResponse.model_validate_json(response.content)
 
         if response.status_code != HTTPStatus.OK:
-            msg = (
-                "Contiguity couldn't verify your OTP."
-                f" Received: {response.status_code} with reason: '{data.message}'"
-            )
+            data = msgspec.json.decode(response.content, type=ErrorResponse)
+            msg = f"Contiguity couldn't verify your OTP. Received: {response.status_code} with reason: '{data.error}'"
             raise ValueError(msg)
+
+        data = msgspec.json.decode(response.content, type=OTPVerifyResponse)
         if self.debug:
             print(f"Contiguity verified your OTP ({otp}) with status: {data.verified}")
 
