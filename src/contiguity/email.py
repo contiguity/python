@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import logging
 from http import HTTPStatus
 from typing import overload
 
 from ._product import BaseProduct
 from ._response import BaseResponse, ErrorResponse, decode_response
+
+logger = logging.getLogger(__name__)
 
 
 class EmailResponse(BaseResponse):
@@ -86,7 +89,5 @@ class Email(BaseProduct):
             raise ValueError(msg)
 
         data = decode_response(response.content, type=EmailResponse)
-        if self.debug:
-            print(f"successfully sent email to {to}")
-
+        logger.debug("successfully sent email to %r", to)
         return data

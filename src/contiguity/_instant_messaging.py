@@ -63,9 +63,7 @@ class InstantMessagingClient(ABC, BaseProduct, Generic[FallbackCauseT]):
             raise ValueError(msg)
 
         data = decode_response(response.content, type=IMSendResponse)
-        if self.debug:
-            logger.debug(f"successfully sent {self._api_path[1:]} message to {to}")
-
+        logger.debug("successfully sent %s message to %r", self._api_path[1:], to)
         return data
 
     def _typing(self, *, to: str, action: Literal["start", "stop"], from_: str | None = None) -> IMTypingResponse:
@@ -86,9 +84,7 @@ class InstantMessagingClient(ABC, BaseProduct, Generic[FallbackCauseT]):
             raise ValueError(msg)
 
         data = decode_response(response.content, type=IMTypingResponse)
-        if self.debug:
-            logger.debug(f"successfully {action} {self._api_path[1:]} typing indicator for {to}")
-
+        logger.debug("successfully %s %s typing indicator for %r", action, self._api_path[1:], to)
         return data
 
     def start_typing(self, *, to: str, from_: str | None = None) -> IMTypingResponse:
@@ -123,9 +119,7 @@ class InstantMessagingClient(ABC, BaseProduct, Generic[FallbackCauseT]):
             raise ValueError(msg)
 
         data = decode_response(response.content, type=IMReactionResponse)
-        if self.debug:
-            logger.debug(f"successfully {action} {self._api_path[1:]} reaction for {to}")
-
+        logger.debug("successfully %s %s reaction for %r", action, self._api_path[1:], to)
         return data
 
     def add_reaction(self, *, to: str, reaction: str, message: str) -> IMReactionResponse:

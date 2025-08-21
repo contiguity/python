@@ -1,7 +1,9 @@
 from ._client import ApiClient
 from .email import Email
+from .imessage import IMessage
 from .otp import OTP
 from .text import Text
+from .whatsapp import WhatsApp
 
 
 class Contiguity:
@@ -10,7 +12,6 @@ class Contiguity:
 
     Args:
         token (str): The authentication token.
-        debug (bool, optional): A flag indicating whether to enable debug mode. Default is False.
     """
 
     def __init__(
@@ -18,25 +19,27 @@ class Contiguity:
         *,
         token: str,
         base_url: str = "https://api.contiguity.com",
-        debug: bool = False,
     ) -> None:
         if not token:
             msg = "token cannot be empty"
             raise ValueError(msg)
         self.token = token
         self.base_url = base_url
-        self.debug = debug
         self.client = ApiClient(base_url=self.base_url, api_key=token.strip())
 
-        self.text = Text(client=self.client, debug=self.debug)
-        self.email = Email(client=self.client, debug=self.debug)
-        self.otp = OTP(client=self.client, debug=self.debug)
+        self.text = Text(client=self.client)
+        self.email = Email(client=self.client)
+        self.otp = OTP(client=self.client)
+        self.imessage = IMessage(client=self.client)
+        self.whatsapp = WhatsApp(client=self.client)
 
 
 __all__ = (
     "OTP",
     "Contiguity",
     "Email",
+    "IMessage",
     "Text",
+    "WhatsApp",
 )
 __version__ = "3.0.0"

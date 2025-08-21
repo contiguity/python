@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from enum import Enum
 from http import HTTPStatus
 
@@ -7,6 +8,8 @@ import phonenumbers
 
 from ._product import BaseProduct
 from ._response import BaseResponse, ErrorResponse, decode_response
+
+logger = logging.getLogger(__name__)
 
 
 class OTPLanguage(str, Enum):
@@ -86,9 +89,7 @@ class OTP(BaseProduct):
             raise ValueError(msg)
 
         data = decode_response(response.content, type=OTPSendResponse)
-        if self.debug:
-            print(f"successfully sent OTP {data.otp_id} to {to}")
-
+        logger.debug("successfully sent OTP %r to %r", data.otp_id, to)
         return data
 
     def resend(self, otp_id: str, /) -> OTPResendResponse:
@@ -105,9 +106,7 @@ class OTP(BaseProduct):
             raise ValueError(msg)
 
         data = decode_response(response.content, type=OTPResendResponse)
-        if self.debug:
-            print(f"successfully resent OTP {otp_id} with status: {data.resent}")
-
+        logger.debug("successfully resent OTP %r with status: %r", otp_id, data.resent)
         return data
 
     def verify(self, otp: int | str, /, *, otp_id: str) -> OTPVerifyResponse:
@@ -125,7 +124,5 @@ class OTP(BaseProduct):
             raise ValueError(msg)
 
         data = decode_response(response.content, type=OTPVerifyResponse)
-        if self.debug:
-            print(f"successfully verified OTP ({otp}) with status: {data.verified}")
-
+        logger.debug("successfully verified OTP %r with status: %r", otp_id, data.verified)
         return data

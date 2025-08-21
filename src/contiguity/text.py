@@ -1,9 +1,12 @@
+import logging
 from http import HTTPStatus
 
 import phonenumbers
 
 from ._product import BaseProduct
 from ._response import BaseResponse, ErrorResponse, decode_response
+
+logger = logging.getLogger(__name__)
 
 
 class TextResponse(BaseResponse):
@@ -45,7 +48,5 @@ class Text(BaseProduct):
             raise ValueError(msg)
 
         data = decode_response(response.content, type=TextResponse)
-        if self.debug:
-            print(f"successfully sent text to {to}")
-
+        logger.debug("successfully sent text to %r", to)
         return data
