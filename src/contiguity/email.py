@@ -1,25 +1,19 @@
 from __future__ import annotations
 
 from http import HTTPStatus
-from typing import TYPE_CHECKING, overload
+from typing import overload
 
 import msgspec
 
+from ._product import BaseProduct
 from ._response import BaseResponse, ErrorResponse
-
-if TYPE_CHECKING:
-    from ._client import ApiClient
 
 
 class EmailResponse(BaseResponse):
     message: str
 
 
-class Email:
-    def __init__(self, *, client: ApiClient, debug: bool = False) -> None:
-        self._client = client
-        self.debug = debug
-
+class Email(BaseProduct):
     @overload
     def email(
         self,

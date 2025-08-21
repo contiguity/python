@@ -2,15 +2,12 @@ from __future__ import annotations
 
 from enum import Enum
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 
 import msgspec
 import phonenumbers
 
+from ._product import BaseProduct
 from ._response import BaseResponse, ErrorResponse
-
-if TYPE_CHECKING:
-    from ._client import ApiClient
 
 
 class OTPLanguage(str, Enum):
@@ -64,11 +61,7 @@ class OTPVerifyResponse(BaseResponse):
     verified: bool
 
 
-class OTP:
-    def __init__(self, *, client: ApiClient, debug: bool = False) -> None:
-        self._client = client
-        self.debug = debug
-
+class OTP(BaseProduct):
     def send(
         self,
         to: str,

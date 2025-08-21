@@ -3,8 +3,7 @@ from http import HTTPStatus
 import msgspec
 import phonenumbers
 
-from contiguity._client import ApiClient
-
+from ._product import BaseProduct
 from ._response import BaseResponse, ErrorResponse
 
 
@@ -12,12 +11,8 @@ class TextResponse(BaseResponse):
     message_id: str
 
 
-class Text:
-    def __init__(self, *, client: ApiClient, debug: bool = False) -> None:
-        self._client = client
-        self.debug = debug
-
-    def send(self, to: str, message: str) -> TextResponse:
+class Text(BaseProduct):
+    def send(self, *, to: str, message: str) -> TextResponse:
         """
         Send a text message.
         Args:
