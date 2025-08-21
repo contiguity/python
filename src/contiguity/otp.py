@@ -83,12 +83,12 @@ class OTP(BaseProduct):
 
         if response.status_code != HTTPStatus.OK:
             data = msgspec.json.decode(response.content, type=ErrorResponse)
-            msg = f"Contiguity couldn't send your OTP. Received: {response.status_code} with reason: '{data.error}'"
+            msg = f"failed to send OTP. {response.status_code} {data.error}"
             raise ValueError(msg)
 
         data = msgspec.json.decode(response.content, type=OTPSendResponse)
         if self.debug:
-            print(f"Contiguity successfully sent your OTP to {to} with OTP ID {data.otp_id}")
+            print(f"successfully sent OTP {data.otp_id} to {to}")
 
         return data
 
@@ -102,12 +102,12 @@ class OTP(BaseProduct):
 
         if response.status_code != HTTPStatus.OK:
             data = msgspec.json.decode(response.content, type=ErrorResponse)
-            msg = f"Contiguity couldn't resend your OTP. Received: {response.status_code} with reason: '{data.error}'"
+            msg = f"failed to resend OTP. {response.status_code} {data.error}"
             raise ValueError(msg)
 
         data = msgspec.json.decode(response.content, type=OTPResendResponse)
         if self.debug:
-            print(f"Contiguity resent your OTP ({id}) with status: {data.resent}")
+            print(f"successfully resent OTP {otp_id} with status: {data.resent}")
 
         return data
 
@@ -122,11 +122,11 @@ class OTP(BaseProduct):
 
         if response.status_code != HTTPStatus.OK:
             data = msgspec.json.decode(response.content, type=ErrorResponse)
-            msg = f"Contiguity couldn't verify your OTP. Received: {response.status_code} with reason: '{data.error}'"
+            msg = f"failed to verify OTP. {response.status_code} {data.error}"
             raise ValueError(msg)
 
         data = msgspec.json.decode(response.content, type=OTPVerifyResponse)
         if self.debug:
-            print(f"Contiguity verified your OTP ({otp}) with status: {data.verified}")
+            print(f"successfully verified OTP ({otp}) with status: {data.verified}")
 
         return data

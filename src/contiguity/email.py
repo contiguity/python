@@ -84,11 +84,11 @@ class Email(BaseProduct):
 
         if response.status_code != HTTPStatus.OK:
             data = msgspec.json.decode(response.content, type=ErrorResponse)
-            msg = f"Contiguity couldn't send your email. Received: {response.status_code} with reason: '{data.error}'"
+            msg = f"failed to send email. {response.status_code} {data.error}"
             raise ValueError(msg)
 
         data = msgspec.json.decode(response.content, type=EmailResponse)
         if self.debug:
-            print(f"Contiguity successfully sent your email to {to}")
+            print(f"successfully sent email to {to}")
 
         return data

@@ -21,7 +21,7 @@ class Contiguity:
         debug: bool = False,
     ) -> None:
         if not token:
-            msg = "Contiguity requires a token/API key to be provided via contiguity.login('token')"
+            msg = "token cannot be empty"
             raise ValueError(msg)
         self.token = token
         self.base_url = base_url

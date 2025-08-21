@@ -26,10 +26,10 @@ class Text(BaseProduct):
         try:
             parsed_number = phonenumbers.parse(to, None)
             if not phonenumbers.is_valid_number(parsed_number):
-                msg = "Contiguity requires phone numbers to follow the E.164 format. Formatting failed."
+                msg = "formatting failed. Phone number must follow the E.164 format."
                 raise ValueError(msg)
         except phonenumbers.NumberParseException as exc:
-            msg = "Contiguity requires phone numbers to follow the E.164 format. Parsing failed."
+            msg = "parsing failed. Phone number must follow the E.164 format."
             raise ValueError(msg) from exc
 
         response = self._client.post(
@@ -41,14 +41,11 @@ class Text(BaseProduct):
         )
 
         if response.status_code != HTTPStatus.OK:
-            data = msgspec.json.decode(response.content, type=ErrorResponse)
-            msg = (
-                f"Contiguity couldn't send your message. Received: {response.status_code} with reason: '{data.error}'"
-            )
+            msg = f"failed to send message. {response.status_code} {data.error}"
             raise ValueError(msg)
 
         data = msgspec.json.decode(response.content, type=TextResponse)
         if self.debug:
-            print(f"Contiguity successfully sent your text to {to}")
+            print(f"successfully sent text to {to}")
 
         return data
