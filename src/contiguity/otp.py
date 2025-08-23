@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import logging
 from enum import Enum
-from http import HTTPStatus
 
 import phonenumbers
 
 from ._product import BaseProduct
-from ._response import BaseResponse, ErrorResponse, decode_response
+from ._response import BaseResponse, decode_response
 
 logger = logging.getLogger(__name__)
 
@@ -83,11 +82,7 @@ class OTP(BaseProduct):
             },
         )
 
-        if response.status_code != HTTPStatus.OK:
-            data = decode_response(response.content, type=ErrorResponse)
-            msg = f"failed to send OTP. {response.status_code} {data.error}"
-            raise ValueError(msg)
-
+        self._client.handle_error(response, fail_message="failed to send OTP")
         data = decode_response(response.content, type=OTPSendResponse)
         logger.debug("successfully sent OTP %r to %r", data.otp_id, to)
         return data
@@ -100,11 +95,7 @@ class OTP(BaseProduct):
             },
         )
 
-        if response.status_code != HTTPStatus.OK:
-            data = decode_response(response.content, type=ErrorResponse)
-            msg = f"failed to resend OTP. {response.status_code} {data.error}"
-            raise ValueError(msg)
-
+        self._client.handle_error(response, fail_message="failed to resend OTP")
         data = decode_response(response.content, type=OTPResendResponse)
         logger.debug("successfully resent OTP %r with status: %r", otp_id, data.resent)
         return data
@@ -118,11 +109,7 @@ class OTP(BaseProduct):
             },
         )
 
-        if response.status_code != HTTPStatus.OK:
-            data = decode_response(response.content, type=ErrorResponse)
-            msg = f"failed to verify OTP. {response.status_code} {data.error}"
-            raise ValueError(msg)
-
+        self._client.handle_error(response, fail_message="failed to verify OTP")
         data = decode_response(response.content, type=OTPVerifyResponse)
         logger.debug("successfully verified OTP %r with status: %r", otp_id, data.verified)
         return data

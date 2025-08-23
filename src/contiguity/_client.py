@@ -1,16 +1,28 @@
 from __future__ import annotations
 
+from http import HTTPStatus
+
 from httpx import AsyncClient as HttpxAsyncClient
 from httpx import Client as HttpxClient
+from httpx import Response
 
 from ._auth import get_contiguity_token
+from ._response import ErrorResponse, decode_response
 
 
-class ApiError(Exception):
+class ContiguityApiError(Exception):
     pass
 
 
-class ApiClient(HttpxClient):
+class BaseApiClient:
+    def handle_error(self, response: Response, /, *, fail_message: str = "api request failed") -> None:
+        if not HTTPStatus.OK <= response.status_code <= HTTPStatus.IM_USED:
+            data = decode_response(response.content, type=ErrorResponse)
+            msg = f"{fail_message}. {response.status_code} {data.error}"
+            raise ContiguityApiError(msg)
+
+
+class ApiClient(HttpxClient, BaseApiClient):
     def __init__(
         self: ApiClient,
         *,
@@ -30,7 +42,7 @@ class ApiClient(HttpxClient):
         )
 
 
-class AsyncApiClient(HttpxAsyncClient):
+class AsyncApiClient(HttpxAsyncClient, BaseApiClient):
     def __init__(
         self: AsyncApiClient,
         *,

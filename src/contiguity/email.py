@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 import logging
-from http import HTTPStatus
-from typing import overload
+from typing import TYPE_CHECKING, overload
 
 from ._product import BaseProduct
-from ._response import BaseResponse, ErrorResponse, decode_response
+from ._response import BaseResponse, decode_response
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
 
 logger = logging.getLogger(__name__)
 
 
 class EmailResponse(BaseResponse):
-    message: str
+    email_id: str
 
 
 class Email(BaseProduct):
@@ -45,10 +47,12 @@ class Email(BaseProduct):
         to: str,
         from_: str,
         subject: str,
-        reply_to: str = "",
-        cc: str = "",
-        text: str | None = None,
-        html: str | None = None,
+        body_text: str | None = None,
+        body_html: str | None = None,
+        reply_to: str | None = None,
+        cc: str | Sequence[str] | None = None,
+        bcc: str | Sequence[str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> EmailResponse:
         """
         Send an email.
@@ -67,27 +71,30 @@ class Email(BaseProduct):
         Raises:
             ValueError: Raises an error if required fields are missing or sending the email fails.
         """
+        if not body_text and not body_html:
+            msg = "either text or html body must be provided"
+            raise ValueError(msg)
+
         email_payload = {
             "to": to,
             "from": from_,
             "subject": subject,
-            "body": html or text,
-            "contentType": "html" if html else "text",
+            "body": {
+                "text": body_text,
+                "html": body_html,
+            },
+            "reply_to": reply_to,
+            "cc": cc,
+            "bcc": bcc,
+            "headers": headers,
         }
 
-        if reply_to:
-            email_payload["replyTo"] = reply_to
+        response = self._client.post(
+            "/send/email",
+            json={k: v for k, v in email_payload.items() if v},
+        )
 
-        if cc:
-            email_payload["cc"] = cc
-
-        response = self._client.post("/send/email", json=email_payload)
-
-        if response.status_code != HTTPStatus.OK:
-            data = decode_response(response.content, type=ErrorResponse)
-            msg = f"failed to send email. {response.status_code} {data.error}"
-            raise ValueError(msg)
-
+        self._client.handle_error(response, fail_message="failed to send email")
         data = decode_response(response.content, type=EmailResponse)
         logger.debug("successfully sent email to %r", to)
         return data

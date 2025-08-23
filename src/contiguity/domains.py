@@ -1,11 +1,10 @@
 import logging
 from collections.abc import Sequence
-from http import HTTPStatus
 
 import msgspec
 
 from ._product import BaseProduct
-from ._response import BaseResponse, ErrorResponse, decode_response
+from ._response import BaseResponse, decode_response
 
 logger = logging.getLogger(__name__)
 
@@ -59,43 +58,24 @@ class Domains(BaseProduct):
             },
         )
 
-        if response.status_code != HTTPStatus.OK:
-            data = decode_response(response.content, type=ErrorResponse)
-            msg = f"failed to register domain. {response.status_code} {data.error}"
-            raise ValueError(msg)
-
+        self._client.handle_error(response, fail_message="failed to register domain")
         data = decode_response(response.content, type=PartialDomain)
         logger.debug("successfully registered domain %r", domain)
         return data
 
     def list(self) -> list[PartialDomain]:
         response = self._client.get("/domains")
-
-        if response.status_code != HTTPStatus.OK:
-            data = decode_response(response.content, type=ErrorResponse)
-            msg = f"failed to list domains. {response.status_code} {data.error}"
-            raise ValueError(msg)
-
+        self._client.handle_error(response, fail_message="failed to list domains")
         return decode_response(response.content, type=list[PartialDomain])
 
     def get(self, domain: str, /) -> Domain:
         response = self._client.get(f"/domains/{domain}")
-
-        if response.status_code != HTTPStatus.OK:
-            data = decode_response(response.content, type=ErrorResponse)
-            msg = f"failed to get domain. {response.status_code} {data.error}"
-            raise ValueError(msg)
-
+        self._client.handle_error(response, fail_message="failed to get domain")
         return decode_response(response.content, type=Domain)
 
     def delete(self, domain: str, /) -> DeleteDomainResponse:
         response = self._client.delete(f"/domains/{domain}")
-
-        if response.status_code != HTTPStatus.OK:
-            data = decode_response(response.content, type=ErrorResponse)
-            msg = f"failed to delete domain. {response.status_code} {data.error}"
-            raise ValueError(msg)
-
+        self._client.handle_error(response, fail_message="failed to delete domain")
         data = decode_response(response.content, type=DeleteDomainResponse)
         logger.debug("successfully deleted domain %r", domain)
         return data

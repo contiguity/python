@@ -1,10 +1,9 @@
 import logging
-from http import HTTPStatus
 
 import phonenumbers
 
 from ._product import BaseProduct
-from ._response import BaseResponse, ErrorResponse, decode_response
+from ._response import BaseResponse, decode_response
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +41,7 @@ class Text(BaseProduct):
             },
         )
 
-        if response.status_code != HTTPStatus.OK:
-            data = decode_response(response.content, type=ErrorResponse)
-            msg = f"failed to send message. {response.status_code} {data.error}"
-            raise ValueError(msg)
-
+        self._client.handle_error(response, fail_message="failed to send text message")
         data = decode_response(response.content, type=TextResponse)
         logger.debug("successfully sent text to %r", to)
         return data

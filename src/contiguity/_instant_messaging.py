@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from http import HTTPStatus
 from typing import TYPE_CHECKING, Generic, Literal, TypeVar
 
 from ._product import BaseProduct
-from ._response import BaseResponse, ErrorResponse, decode_response
+from ._response import BaseResponse, decode_response
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -57,11 +56,7 @@ class InstantMessagingClient(ABC, BaseProduct, Generic[FallbackCauseT]):
             json={k: v for k, v in payload.items() if v is not None},
         )
 
-        if response.status_code != HTTPStatus.OK:
-            data = decode_response(response.content, type=ErrorResponse)
-            msg = f"failed to send instant message. {response.status_code} {data.error}"
-            raise ValueError(msg)
-
+        self._client.handle_error(response, fail_message="failed to send instant message")
         data = decode_response(response.content, type=IMSendResponse)
         logger.debug("successfully sent %s message to %r", self._api_path[1:], to)
         return data
@@ -78,11 +73,7 @@ class InstantMessagingClient(ABC, BaseProduct, Generic[FallbackCauseT]):
             json={k: v for k, v in payload.items() if v is not None},
         )
 
-        if response.status_code != HTTPStatus.OK:
-            data = decode_response(response.content, type=ErrorResponse)
-            msg = f"failed to {action} {self._api_path[1:]} typing indicator. {response.status_code} {data.error}"
-            raise ValueError(msg)
-
+        self._client.handle_error(response, fail_message=f"failed to {action} {self._api_path[1:]} typing indicator")
         data = decode_response(response.content, type=IMTypingResponse)
         logger.debug("successfully %s %s typing indicator for %r", action, self._api_path[1:], to)
         return data
@@ -113,11 +104,7 @@ class InstantMessagingClient(ABC, BaseProduct, Generic[FallbackCauseT]):
             json={k: v for k, v in payload.items() if v is not None},
         )
 
-        if response.status_code != HTTPStatus.OK:
-            data = decode_response(response.content, type=ErrorResponse)
-            msg = f"failed to {action} {self._api_path[1:]} reaction. {response.status_code} {data.error}"
-            raise ValueError(msg)
-
+        self._client.handle_error(response, fail_message=f"failed to {action} {self._api_path[1:]} reaction")
         data = decode_response(response.content, type=IMReactionResponse)
         logger.debug("successfully %s %s reaction for %r", action, self._api_path[1:], to)
         return data
