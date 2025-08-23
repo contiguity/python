@@ -24,9 +24,11 @@ class Email(BaseProduct):
         to: str,
         from_: str,
         subject: str,
-        text: str,
-        reply_to: str = "",
-        cc: str = "",
+        body_text: str,
+        reply_to: str | None = None,
+        cc: str | Sequence[str] | None = None,
+        bcc: str | Sequence[str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> EmailResponse: ...
 
     @overload
@@ -36,9 +38,11 @@ class Email(BaseProduct):
         to: str,
         from_: str,
         subject: str,
-        html: str,
-        reply_to: str = "",
-        cc: str = "",
+        body_html: str,
+        reply_to: str | None = None,
+        cc: str | Sequence[str] | None = None,
+        bcc: str | Sequence[str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> EmailResponse: ...
 
     def email(  # noqa: PLR0913
