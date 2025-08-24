@@ -1,23 +1,19 @@
-from __future__ import annotations
-
 from http import HTTPStatus
-from typing import TYPE_CHECKING, overload
+from typing import overload
 
+import msgspec
 import phonenumbers
-from pydantic import BaseModel
 
-from ._common import Crumbs  # noqa: TCH001 Pydantic needs this to be outside of the TYPE_CHECKING block.
-
-if TYPE_CHECKING:
-    from ._client import ApiClient
+from ._client import ApiClient
+from ._common import Crumbs
 
 
-class TextResponse(BaseModel):
+class TextResponse(msgspec.Struct):
     message: str
     crumbs: Crumbs
 
 
-class EmailResponse(BaseModel):
+class EmailResponse(msgspec.Struct):
     message: str
     crumbs: Crumbs
 
@@ -54,7 +50,7 @@ class Send:
                 "message": message,
             },
         )
-        data = TextResponse.model_validate_json(response.content)
+        data = msgspec.json.decode(response.content, type=TextResponse)
 
         if response.status_code != HTTPStatus.OK:
             msg = (
@@ -99,8 +95,8 @@ class Send:
         subject: str,
         reply_to: str = "",
         cc: str = "",
-        text: str | None = None,
-        html: str | None = None,
+        text: "str | None" = None,
+        html: "str | None" = None,
     ) -> EmailResponse:
         """
         Send an email.
@@ -134,12 +130,11 @@ class Send:
             email_payload["cc"] = cc
 
         response = self._client.post("/send/email", json=email_payload)
-        data = EmailResponse.model_validate_json(response.content)
+        data = msgspec.json.decode(response.content, type=EmailResponse)
 
         if response.status_code != HTTPStatus.OK:
             msg = (
-                "Contiguity couldn't send your email."
-                f" Received: {response.status_code} with reason: '{data.message}'"
+                f"Contiguity couldn't send your email. Received: {response.status_code} with reason: '{data.message}'"
             )
             raise ValueError(msg)
         if self.debug:

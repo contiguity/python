@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from httpx import AsyncClient as HttpxAsyncClient
 from httpx import Client as HttpxClient
 
@@ -12,10 +10,10 @@ class ApiError(Exception):
 
 class ApiClient(HttpxClient):
     def __init__(
-        self: ApiClient,
+        self,
         *,
         base_url: str = "https://api.contiguity.co",
-        api_key: str | None = None,
+        api_key: "str | None" = None,
         timeout: int = 5,
     ) -> None:
         if not api_key:
@@ -33,10 +31,10 @@ class ApiClient(HttpxClient):
 
 class AsyncApiClient(HttpxAsyncClient):
     def __init__(
-        self: AsyncApiClient,
+        self,
         *,
         base_url: str = "https://api.contiguity.co",
-        api_key: str | None = None,
+        api_key: "str | None" = None,
         timeout: int = 5,
     ) -> None:
         if not api_key:

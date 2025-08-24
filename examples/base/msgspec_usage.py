@@ -1,11 +1,11 @@
 # ruff: noqa: T201
-from pydantic import BaseModel
+import msgspec
 
 from contiguity import Base
 
 
-# Create a Pydantic model for the item.
-class MyItem(BaseModel):
+# Create a msgspec struct for the item.
+class MyItem(msgspec.Struct):
     key: str  # Make sure to include the key field.
     name: str
     age: int
@@ -13,7 +13,7 @@ class MyItem(BaseModel):
 
 
 # Create a Base instance.
-# Static type checking will work with the Pydantic model.
+# Static type checking will work with the msgspec struct.
 db = Base("members", item_type=MyItem)
 
 # Put an item with a specific key.
