@@ -1,11 +1,11 @@
-from .async_base import AsyncBase
-from .base import Base
+from .async_collection import AsyncCollection
+from .collection import Collection
 from .common import BaseItem, QueryResponse
 from .exceptions import InvalidKeyError, ItemConflictError, ItemNotFoundError
 
 __all__ = (
-    "AsyncBase",
-    "Base",
+    "AsyncCollection",
+    "Collection",
     "BaseItem",
     "InvalidKeyError",
     "ItemConflictError",
