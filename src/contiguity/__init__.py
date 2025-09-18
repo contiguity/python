@@ -1,6 +1,8 @@
 from ._client import ApiClient
+from .domains import Domains
 from .email import Email
 from .imessage import IMessage
+from .leases import Leases
 from .otp import OTP
 from .text import Text
 from .whatsapp import WhatsApp
@@ -32,13 +34,17 @@ class Contiguity:
         self.otp = OTP(client=self.client)
         self.imessage = IMessage(client=self.client)
         self.whatsapp = WhatsApp(client=self.client)
+        self.leases = Leases(client=self.client)
+        self.domains = Domains(client=self.client)
 
 
 __all__ = (
     "OTP",
     "Contiguity",
+    "Domains",
     "Email",
     "IMessage",
+    "Leases",
     "Text",
     "WhatsApp",
 )

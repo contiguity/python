@@ -79,7 +79,7 @@ class TerminateLeaseResponse(Struct):
     terminated_at: int
 
 
-class Lease(BaseProduct):
+class Leases(BaseProduct):
     def get_available_numbers(self) -> list[NumberDetails]:
         response = self._client.get("/leases")
         self._client.handle_error(response, fail_message="failed to get available numbers")
