@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Sequence
 
-import msgspec
+from msgspec import Struct
 
 from ._product import BaseProduct
 from ._response import BaseResponse, decode_response
@@ -9,7 +9,7 @@ from ._response import BaseResponse, decode_response
 logger = logging.getLogger(__name__)
 
 
-class PartialDomain(msgspec.Struct):
+class PartialDomain(Struct):
     domain: str
     status: str
     id: str
@@ -18,14 +18,14 @@ class PartialDomain(msgspec.Struct):
     sending_allowed: bool
 
 
-class DnsRecord(msgspec.Struct):
+class DnsRecord(Struct):
     type: str
     name: str
     value: str
     purpose: str
 
 
-class DomainVerifications(msgspec.Struct):
+class DomainVerifications(Struct):
     dkim: str
     mail_from: str
     domain: str

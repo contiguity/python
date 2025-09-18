@@ -13,7 +13,7 @@ from httpx import HTTPStatusError
 from typing_extensions import deprecated
 
 from contiguity._auth import get_data_key, get_project_id
-from contiguity._client import ApiError, AsyncApiClient
+from contiguity._client import ContiguityApiError, AsyncApiClient
 
 from .common import (
     UNSET,
@@ -127,7 +127,7 @@ class AsyncBase(Generic[ItemT]):
         try:
             response.raise_for_status()
         except HTTPStatusError as exc:
-            raise ApiError(exc.response.text) from exc
+            raise ContiguityApiError(exc.response.text) from exc
         if self.item_type:
             return msgspec.json.decode(response.content, type=Sequence[self.item_type] if sequence else self.item_type)
         return response.json(cls=self.json_decoder)
@@ -194,7 +194,7 @@ class AsyncBase(Generic[ItemT]):
         try:
             response.raise_for_status()
         except HTTPStatusError as exc:
-            raise ApiError(exc.response.text) from exc
+            raise ContiguityApiError(exc.response.text) from exc
 
     async def insert(
         self: Self,
@@ -212,7 +212,7 @@ class AsyncBase(Generic[ItemT]):
 
         if not (returned_item := self._response_as_item_type(response, sequence=True)):
             msg = "expected a single item, got an empty response"
-            raise ApiError(msg)
+            raise ContiguityApiError(msg)
         return returned_item[0]
 
     async def put(
@@ -299,7 +299,7 @@ class AsyncBase(Generic[ItemT]):
         try:
             response.raise_for_status()
         except HTTPStatusError as exc:
-            raise ApiError(exc.response.text) from exc
+            raise ContiguityApiError(exc.response.text) from exc
         return msgspec.json.decode(response.content, type=QueryResponse[ItemT])
 
         # query_response = QueryResponse[ItemT].model_validate_json(response.content)
