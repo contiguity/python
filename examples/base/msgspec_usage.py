@@ -1,11 +1,10 @@
-# ruff: noqa: T201
-from pydantic import BaseModel
+from msgspec import Struct
 
-from contiguity import Base
+from contiguity.base import Base
 
 
 # Create a Pydantic model for the item.
-class MyItem(BaseModel):
+class MyItem(Struct):
     key: str  # Make sure to include the key field.
     name: str
     age: int
