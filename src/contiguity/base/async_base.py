@@ -13,7 +13,7 @@ from httpx import HTTPStatusError
 from typing_extensions import deprecated
 
 from contiguity._auth import get_data_key, get_project_id
-from contiguity._client import ContiguityApiError, AsyncApiClient
+from contiguity._client import AsyncApiClient, ContiguityApiError
 
 from .common import (
     UNSET,
