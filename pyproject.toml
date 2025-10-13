@@ -10,7 +10,7 @@ dynamic = ["version"]
 description = "Contiguity's official Python SDK"
 readme = "README.md"
 license = {file = "LICENSE.txt"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     {name = "Contiguity", email = "help@contiguity.support"},
 ]
