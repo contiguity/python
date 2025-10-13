@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Sequence
 
 import phonenumbers
 
@@ -13,17 +14,14 @@ class TextResponse(BaseResponse):
 
 
 class Text(BaseProduct):
-    def send(self, *, to: str, message: str) -> TextResponse:
-        """
-        Send a text message.
-        Args:
-            to (str): The recipient's phone number.
-            message (str): The message to send.
-        Returns:
-            dict: The response object.
-        Raises:
-            ValueError: Raises an error if required fields are missing or sending the message fails.
-        """
+    def send(
+        self,
+        *,
+        to: str,
+        message: str,
+        from_: str | None = None,
+        attachments: Sequence[str] | None = None,
+    ) -> TextResponse:
         try:
             parsed_number = phonenumbers.parse(to, None)
             if not phonenumbers.is_valid_number(parsed_number):
@@ -33,12 +31,16 @@ class Text(BaseProduct):
             msg = "parsing failed. Phone number must follow the E.164 format."
             raise ValueError(msg) from exc
 
+        payload = {
+            "to": phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164),
+            "message": message,
+            "from": from_,
+            "attachments": attachments,
+        }
+
         response = self._client.post(
             "/send/text",
-            json={
-                "to": phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164),
-                "message": message,
-            },
+            json={k: v for k, v in payload.items() if v is not None},
         )
 
         self._client.handle_error(response, fail_message="failed to send text message")
