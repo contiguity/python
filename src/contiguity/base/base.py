@@ -7,18 +7,17 @@
 # - [ ] add async
 # - [ ] add drive support
 
-from __future__ import annotations
-
 import json
 import os
 from collections.abc import Mapping, Sequence
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Generic, Literal, overload
+from typing import Generic, Literal, overload
 from warnings import warn
 
 import msgspec
 from httpx import HTTPStatusError
+from httpx import Response as HttpxResponse
 from typing_extensions import deprecated
 
 from contiguity._auth import get_data_key, get_project_id
@@ -40,10 +39,6 @@ from .common import (
 )
 from .exceptions import ItemConflictError, ItemNotFoundError
 
-if TYPE_CHECKING:
-    from httpx import Response as HttpxResponse
-    from typing_extensions import Self
-
 
 class Base(Generic[ItemT]):
     EXPIRES_ATTRIBUTE = "__expires"
@@ -51,7 +46,7 @@ class Base(Generic[ItemT]):
 
     @overload
     def __init__(
-        self: Self,
+        self,
         name: str,
         /,
         *,
@@ -66,7 +61,7 @@ class Base(Generic[ItemT]):
     @overload
     @deprecated("The `project_key` parameter has been renamed to `data_key`.")
     def __init__(
-        self: Self,
+        self,
         name: str,
         /,
         *,
@@ -79,7 +74,7 @@ class Base(Generic[ItemT]):
     ) -> None: ...
 
     def __init__(  # noqa: PLR0913
-        self: Self,
+        self,
         name: str,
         /,
         *,
@@ -111,7 +106,7 @@ class Base(Generic[ItemT]):
 
     @overload
     def _response_as_item_type(
-        self: Self,
+        self,
         response: HttpxResponse,
         /,
         *,
@@ -119,7 +114,7 @@ class Base(Generic[ItemT]):
     ) -> ItemT: ...
     @overload
     def _response_as_item_type(
-        self: Self,
+        self,
         response: HttpxResponse,
         /,
         *,
@@ -127,7 +122,7 @@ class Base(Generic[ItemT]):
     ) -> Sequence[ItemT]: ...
 
     def _response_as_item_type(
-        self: Self,
+        self,
         response: HttpxResponse,
         /,
         *,
@@ -142,7 +137,7 @@ class Base(Generic[ItemT]):
         return response.json(cls=self.json_decoder)
 
     def _insert_expires_attr(
-        self: Self,
+        self,
         item: ItemT | Mapping[str, DataType],
         expire_in: int | None = None,
         expire_at: TimestampType | None = None,
@@ -167,16 +162,16 @@ class Base(Generic[ItemT]):
         return item_dict
 
     @overload
-    def get(self: Self, key: str, /) -> ItemT | None: ...
+    def get(self, key: str, /) -> ItemT | None: ...
 
     @overload
-    def get(self: Self, key: str, /, *, default: ItemT) -> ItemT: ...
+    def get(self, key: str, /, *, default: ItemT) -> ItemT: ...
 
     @overload
-    def get(self: Self, key: str, /, *, default: DefaultItemT) -> ItemT | DefaultItemT: ...
+    def get(self, key: str, /, *, default: DefaultItemT) -> ItemT | DefaultItemT: ...
 
     def get(
-        self: Self,
+        self,
         key: str,
         /,
         *,
@@ -196,7 +191,7 @@ class Base(Generic[ItemT]):
 
         return self._response_as_item_type(response, sequence=False)
 
-    def delete(self: Self, key: str, /) -> None:
+    def delete(self, key: str, /) -> None:
         """Delete an item from the Base."""
         key = check_key(key)
         response = self._client.delete(f"/items/{key}")
@@ -206,7 +201,7 @@ class Base(Generic[ItemT]):
             raise ContiguityApiError(exc.response.text) from exc
 
     def insert(
-        self: Self,
+        self,
         item: ItemT,
         /,
         *,
@@ -225,7 +220,7 @@ class Base(Generic[ItemT]):
         return returned_item[0]
 
     def put(
-        self: Self,
+        self,
         *items: ItemT,
         expire_in: int | None = None,
         expire_at: TimestampType | None = None,
@@ -246,7 +241,7 @@ class Base(Generic[ItemT]):
 
     @deprecated("This method will be removed in a future release. You can pass multiple items to `put`.")
     def put_many(
-        self: Self,
+        self,
         items: Sequence[ItemT],
         /,
         *,
@@ -256,7 +251,7 @@ class Base(Generic[ItemT]):
         return self.put(*items, expire_in=expire_in, expire_at=expire_at)
 
     def update(
-        self: Self,
+        self,
         updates: Mapping[str, DataType | UpdateOperation],
         /,
         *,
@@ -287,7 +282,7 @@ class Base(Generic[ItemT]):
         return self._response_as_item_type(response, sequence=False)
 
     def query(
-        self: Self,
+        self,
         *queries: QueryType,
         limit: int = 1000,
         last: str | None = None,
@@ -319,7 +314,7 @@ class Base(Generic[ItemT]):
 
     @deprecated("This method has been renamed to `query` and will be removed in a future release.")
     def fetch(
-        self: Self,
+        self,
         *queries: QueryType,
         limit: int = 1000,
         last: str | None = None,

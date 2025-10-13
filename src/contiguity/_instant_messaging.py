@@ -1,14 +1,10 @@
-from __future__ import annotations
-
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Generic, Literal, TypeVar
+from collections.abc import Sequence
+from typing import Generic, Literal, TypeVar
 
 from ._product import BaseProduct
 from ._response import BaseResponse, decode_response
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
 
 FallbackCauseT = TypeVar("FallbackCauseT", bound=str)
 

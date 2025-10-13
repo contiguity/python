@@ -1,20 +1,17 @@
-from __future__ import annotations
-
 from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import Any, Generic, TypeVar, Union
 from urllib.parse import quote
 
 from msgspec import Struct
-from typing_extensions import Self
 
 from .exceptions import InvalidKeyError
 
-DataType = Union[str, int, float, bool, None, Sequence["DataType"], Mapping[str, "DataType"]]
-TimestampType = Union[int, datetime]
+DataType = str | int | float | bool | None | Sequence["DataType"] | Mapping[str, "DataType"]
+TimestampType = int | datetime
 QueryType = Mapping[str, DataType]
 
-ItemType = Union[Mapping[str, Any], Struct]
+ItemType = Mapping[str, Any] | Struct
 ItemT = TypeVar("ItemT", bound=ItemType)
 DefaultItemT = TypeVar("DefaultItemT")
 
@@ -45,13 +42,13 @@ class Trim(UpdateOperation):
 
 
 class Increment(UpdateOperation):
-    def __init__(self: Increment, value: int = 1, /) -> None:
+    def __init__(self, value: int = 1, /) -> None:
         self.value = value
 
 
 class Append(UpdateOperation):
-    def __init__(self: Append, value: DataType, /) -> None:
-        if isinstance(value, (list, tuple)):
+    def __init__(self, value: DataType, /) -> None:
+        if isinstance(value, list | tuple):
             self.value = value
         else:
             self.value = [value]
@@ -87,7 +84,7 @@ class UpdatePayload(Struct):
     delete: list[str] = []
 
     @classmethod
-    def from_updates_mapping(cls: type[Self], updates: Mapping[str, DataType | UpdateOperation], /) -> Self:
+    def from_updates_mapping(cls, updates: Mapping[str, DataType | UpdateOperation], /) -> "UpdatePayload":
         set = {}
         increment = {}
         append = {}

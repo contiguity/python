@@ -1,13 +1,9 @@
-from __future__ import annotations
-
 import logging
-from typing import TYPE_CHECKING, overload
+from collections.abc import Mapping, Sequence
+from typing import overload
 
 from ._product import BaseProduct
 from ._response import BaseResponse, decode_response
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
 
 logger = logging.getLogger(__name__)
 

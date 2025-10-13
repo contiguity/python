@@ -1,10 +1,10 @@
 from collections.abc import Sequence
 from http import HTTPStatus
-from typing import Generic, TypeVar, Union
+from typing import Generic, TypeVar
 
 import msgspec
 
-T = TypeVar("T", bound=Union[msgspec.Struct, Sequence[msgspec.Struct]])
+T = TypeVar("T", bound=msgspec.Struct | Sequence[msgspec.Struct])
 
 
 class ResponseMetadata(msgspec.Struct):

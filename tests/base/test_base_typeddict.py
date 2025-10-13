@@ -1,18 +1,13 @@
 # ruff: noqa: S101, S311
-from __future__ import annotations
-
 import random
-from typing import TYPE_CHECKING, Any
+from collections.abc import Generator
+from typing import Any, TypedDict
 
 import pytest
 from dotenv import load_dotenv
-from typing_extensions import TypedDict
 
 from contiguity.base import Base, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
 from tests import NON_EXISTENT_ITEM_WARNING, random_string
-
-if TYPE_CHECKING:
-    from collections.abc import Generator
 
 load_dotenv()
 

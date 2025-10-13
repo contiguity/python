@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from http import HTTPStatus
 
 from httpx import AsyncClient as HttpxAsyncClient
@@ -24,7 +22,7 @@ class BaseApiClient:
 
 class ApiClient(HttpxClient, BaseApiClient):
     def __init__(
-        self: ApiClient,
+        self: "ApiClient",
         *,
         base_url: str = "https://api.contiguity.com",
         api_key: str | None = None,
@@ -44,7 +42,7 @@ class ApiClient(HttpxClient, BaseApiClient):
 
 class AsyncApiClient(HttpxAsyncClient, BaseApiClient):
     def __init__(
-        self: AsyncApiClient,
+        self: "AsyncApiClient",
         *,
         base_url: str = "https://api.contiguity.com",
         api_key: str | None = None,
