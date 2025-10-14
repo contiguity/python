@@ -109,7 +109,7 @@ class AsyncBase(Generic[ItemT]):
         response: HttpxResponse,
         /,
         *,
-        sequence: Literal[True] = True,
+        sequence: Literal[True],
     ) -> Sequence[ItemT]: ...
 
     def _response_as_item_type(
