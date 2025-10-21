@@ -1,13 +1,15 @@
 from collections.abc import Mapping, Sequence
 from datetime import datetime
-from typing import Any, Generic, TypeVar, Union
+from typing import Any, Generic, TypeAlias, TypeVar
 from urllib.parse import quote
 
 from msgspec import Struct
 
 from .exceptions import InvalidKeyError
 
-DataType = str | int | float | bool | None | Sequence["DataType"] | Mapping[str, "DataType"]
+# Defining DataType in one line causes issues with msgspec.
+DataType: TypeAlias = str | int | float | bool | None  # type: ignore[reportRedeclaration]
+DataType: TypeAlias = DataType | Sequence[DataType] | Mapping[str, DataType]  # type: ignore[reportRedeclaration]
 TimestampType = int | datetime
 QueryType = Mapping[str, DataType]
 
@@ -29,7 +31,7 @@ class BaseItem(Struct):
 
 class QueryResponse(Struct, Generic[ItemT]):
     count: int = 0
-    last_key: Union[str, None] = None  # noqa: UP007 Pydantic doesn't support `X | Y` syntax in Python 3.9.
+    last_key: str | None = None
     items: Sequence[ItemT] = []
 
 

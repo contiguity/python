@@ -1,9 +1,8 @@
-import json
 import os
 from collections.abc import Mapping, Sequence
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
-from typing import Generic, Literal, overload
+from typing import Any, Generic, Literal, overload
 from warnings import warn
 
 import msgspec
@@ -41,12 +40,11 @@ class AsyncBase(Generic[ItemT]):
         name: str,
         /,
         *,
-        item_type: type[ItemT] | None = None,
+        item_type: type[ItemT] = Mapping[str, Any],
         data_key: str | None = None,
         project_id: str | None = None,
         host: str | None = None,
         api_version: str = "v1",
-        json_decoder: type[json.JSONDecoder] = json.JSONDecoder,
     ) -> None: ...
 
     @overload
@@ -56,12 +54,11 @@ class AsyncBase(Generic[ItemT]):
         name: str,
         /,
         *,
-        item_type: type[ItemT] | None = None,
+        item_type: type[ItemT] = Mapping[str, Any],
         project_key: str | None = None,
         project_id: str | None = None,
         host: str | None = None,
         api_version: str = "v1",
-        json_decoder: type[json.JSONDecoder] = json.JSONDecoder,
     ) -> None: ...
 
     def __init__(  # noqa: PLR0913
@@ -69,13 +66,12 @@ class AsyncBase(Generic[ItemT]):
         name: str,
         /,
         *,
-        item_type: type[ItemT] | None = None,
+        item_type: type[ItemT] = Mapping[str, Any],
         data_key: str | None = None,
         project_key: str | None = None,  # Deprecated.
         project_id: str | None = None,
         host: str | None = None,
         api_version: str = "v1",
-        json_decoder: type[json.JSONDecoder] = json.JSONDecoder,  # Only used when item_type is not a Pydantic model.
     ) -> None:
         if not name:
             msg = f"invalid Base name '{name}'"
@@ -87,7 +83,6 @@ class AsyncBase(Generic[ItemT]):
         self.project_id = project_id or get_project_id()
         self.host = host or os.getenv("CONTIGUITY_BASE_HOST") or "api.base.contiguity.co"
         self.api_version = api_version
-        self.json_decoder = json_decoder
         self.util = Updates()
         self._client = AsyncApiClient(
             base_url=f"https://{self.host}/{api_version}/{self.project_id}/{self.name}",
@@ -123,9 +118,7 @@ class AsyncBase(Generic[ItemT]):
             response.raise_for_status()
         except HTTPStatusError as exc:
             raise ContiguityApiError(exc.response.text) from exc
-        if self.item_type:
-            return msgspec.json.decode(response.content, type=Sequence[self.item_type] if sequence else self.item_type)
-        return response.json(cls=self.json_decoder)
+        return msgspec.json.decode(response.content, type=Sequence[self.item_type] if sequence else self.item_type)
 
     def _insert_expires_attr(
         self,
@@ -295,13 +288,7 @@ class AsyncBase(Generic[ItemT]):
             response.raise_for_status()
         except HTTPStatusError as exc:
             raise ContiguityApiError(exc.response.text) from exc
-        return msgspec.json.decode(response.content, type=QueryResponse[ItemT])
-
-        # query_response = QueryResponse[ItemT].model_validate_json(response.content)
-        # if self.item_type:
-        #     # HACK: Pydantic model_validate_json doesn't validate Sequence[ItemT] properly. # noqa: FIX004
-        #     query_response.items = msgspec.json.decode(query_response.items, type=Sequence[self.item_type])
-        # return query_response
+        return msgspec.json.decode(response.content, type=QueryResponse[self.item_type])
 
     @deprecated("This method has been renamed to `query` and will be removed in a future release.")
     async def fetch(
