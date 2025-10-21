@@ -14,6 +14,7 @@ load_dotenv()
 
 
 class TestItemModel(Struct):
+    __test__ = False
     key: str = "test_key"
     field1: int = random.randint(1, 1000)
     field2: str = random_string()
