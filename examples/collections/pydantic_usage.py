@@ -1,7 +1,7 @@
 # ruff: noqa: T201
 from pydantic import BaseModel
 
-from contiguity import Base
+from contiguity import Collection
 
 
 # Create a Pydantic model for the item.
@@ -12,9 +12,9 @@ class MyItem(BaseModel):
     interests: list[str] = []
 
 
-# Create a Base instance.
+# Create a Collection instance.
 # Static type checking will work with the Pydantic model.
-db = Base("members", item_type=MyItem)
+db = Collection("members", item_type=MyItem)
 
 # Put an item with a specific key.
 put_result = db.put(

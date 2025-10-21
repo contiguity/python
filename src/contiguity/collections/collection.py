@@ -45,7 +45,7 @@ if TYPE_CHECKING:
     from typing_extensions import Self
 
 
-class Base(Generic[ItemT]):
+class Collection(Generic[ItemT]):
     EXPIRES_ATTRIBUTE = "__expires"
     PUT_LIMIT = 30
 
@@ -92,14 +92,14 @@ class Base(Generic[ItemT]):
         json_decoder: type[json.JSONDecoder] = json.JSONDecoder,  # Only used when item_type is not a Pydantic model.
     ) -> None:
         if not name:
-            msg = f"invalid Base name '{name}'"
+            msg = f"invalid Collection name '{name}'"
             raise ValueError(msg)
 
         self.name = name
         self.item_type = item_type
         self.data_key = data_key or project_key or get_data_key()
         self.project_id = project_id or get_project_id()
-        self.host = host or os.getenv("CONTIGUITY_BASE_HOST") or "api.base.contiguity.co"
+        self.host = host or os.getenv("CONTIGUITY_COLLECTIONS_HOST") or "api.base.contiguity.co"
         self.api_version = api_version
         self.json_decoder = json_decoder
         self.util = Updates()
@@ -199,7 +199,7 @@ class Base(Generic[ItemT]):
         return self._response_as_item_type(response, sequence=False)
 
     def delete(self: Self, key: str, /) -> None:
-        """Delete an item from the Base."""
+        """Delete an item from the Collection."""
         key = check_key(key)
         response = self._client.delete(f"/items/{key}")
         try:

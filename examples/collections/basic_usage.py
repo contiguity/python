@@ -1,8 +1,8 @@
 # ruff: noqa: T201
-from contiguity import Base
+from contiguity import Collection
 
-# Create a Base instance.
-db = Base("my-base")
+# Create a Collection instance.
+db = Collection("my-collection")
 
 # Put an item with a specific key.
 put_result = db.put({"key": "foo", "value": "Hello world!"})
