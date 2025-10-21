@@ -3,7 +3,7 @@ from msgspec import Struct
 from contiguity.base import Base
 
 
-# Create a Pydantic model for the item.
+# Create a msgspec model for the item.
 class MyItem(Struct):
     key: str  # Make sure to include the key field.
     name: str
@@ -12,7 +12,7 @@ class MyItem(Struct):
 
 
 # Create a Base instance.
-# Static type checking will work with the Pydantic model.
+# Static type checking will work with the msgspec model.
 db = Base("members", item_type=MyItem)
 
 # Put an item with a specific key.
