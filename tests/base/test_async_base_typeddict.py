@@ -1,15 +1,11 @@
-# ruff: noqa: S101, S311
 import random
 from collections.abc import AsyncGenerator
 from typing import Any, TypedDict
 
 import pytest
-from dotenv import load_dotenv
 
 from contiguity.base import AsyncBase, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
 from tests import NON_EXISTENT_ITEM_WARNING, random_string
-
-load_dotenv()
 
 
 class TestItemDict(TypedDict):

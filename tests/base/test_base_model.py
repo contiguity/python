@@ -1,16 +1,12 @@
-# ruff: noqa: S101, S311
 import random
 from collections.abc import Generator
 from typing import Any
 
 import pytest
-from dotenv import load_dotenv
 from msgspec import Struct, field
 
 from contiguity.base import Base, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
 from tests import NON_EXISTENT_ITEM_WARNING, random_string
-
-load_dotenv()
 
 
 class TestItemModel(Struct):

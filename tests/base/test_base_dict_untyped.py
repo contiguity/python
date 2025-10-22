@@ -1,16 +1,12 @@
-# ruff: noqa: S101, S311
 import random
 from collections.abc import Generator
 from typing import Any
 
 import pytest
-from dotenv import load_dotenv
 
 from contiguity.base import Base, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
 from contiguity.base.common import DataType
 from tests import NON_EXISTENT_ITEM_WARNING, random_string
-
-load_dotenv()
 
 
 def create_test_item(**kwargs: DataType) -> dict:
