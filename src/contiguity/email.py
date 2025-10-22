@@ -14,7 +14,7 @@ class EmailResponse(BaseResponse):
 
 class Email(BaseProduct):
     @overload
-    def email(
+    def send(
         self,
         *,
         to: str,
@@ -28,7 +28,7 @@ class Email(BaseProduct):
     ) -> EmailResponse: ...
 
     @overload
-    def email(
+    def send(
         self,
         *,
         to: str,
@@ -41,7 +41,7 @@ class Email(BaseProduct):
         headers: Mapping[str, str] | None = None,
     ) -> EmailResponse: ...
 
-    def email(  # noqa: PLR0913
+    def send(  # noqa: PLR0913
         self,
         *,
         to: str,
