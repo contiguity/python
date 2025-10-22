@@ -95,6 +95,6 @@ class Email(BaseProduct):
         )
 
         self._client.handle_error(response, fail_message="failed to send email")
-        data = decode_response(response.content, response_type=EmailResponse)
+        data = decode_response(response.content, type=EmailResponse)
         logger.debug("successfully sent email to %r", to)
         return data

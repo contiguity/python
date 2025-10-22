@@ -59,23 +59,23 @@ class Domains(BaseProduct):
         )
 
         self._client.handle_error(response, fail_message="failed to register domain")
-        data = decode_response(response.content, response_type=PartialDomain)
+        data = decode_response(response.content, type=PartialDomain)
         logger.debug("successfully registered domain %r", domain)
         return data
 
     def list(self) -> list[PartialDomain]:
         response = self._client.get("/domains")
         self._client.handle_error(response, fail_message="failed to list domains")
-        return decode_response(response.content, response_type=list[PartialDomain])
+        return decode_response(response.content, type=list[PartialDomain])
 
     def get(self, domain: str, /) -> Domain:
         response = self._client.get(f"/domains/{domain}")
         self._client.handle_error(response, fail_message="failed to get domain")
-        return decode_response(response.content, response_type=Domain)
+        return decode_response(response.content, type=Domain)
 
     def delete(self, domain: str, /) -> DeleteDomainResponse:
         response = self._client.delete(f"/domains/{domain}")
         self._client.handle_error(response, fail_message="failed to delete domain")
-        data = decode_response(response.content, response_type=DeleteDomainResponse)
+        data = decode_response(response.content, type=DeleteDomainResponse)
         logger.debug("successfully deleted domain %r", domain)
         return data

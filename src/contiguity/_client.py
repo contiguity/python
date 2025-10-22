@@ -15,7 +15,7 @@ class ContiguityApiError(Exception):
 class BaseApiClient:
     def handle_error(self, response: Response, /, *, fail_message: str = "api request failed") -> None:
         if not HTTPStatus.OK <= response.status_code < HTTPStatus.MULTIPLE_CHOICES:
-            data = decode_response(response.content, response_type=ErrorResponse)
+            data = decode_response(response.content, type=ErrorResponse)
             msg = f"{fail_message}. {response.status_code} {data.error}"
             raise ContiguityApiError(msg)
 

@@ -53,7 +53,7 @@ class InstantMessagingClient(ABC, BaseProduct, Generic[FallbackCauseT]):
         )
 
         self._client.handle_error(response, fail_message="failed to send instant message")
-        data = decode_response(response.content, response_type=IMSendResponse)
+        data = decode_response(response.content, type=IMSendResponse)
         logger.debug("successfully sent %s message to %r", self._api_path[1:], to)
         return data
 
@@ -70,7 +70,7 @@ class InstantMessagingClient(ABC, BaseProduct, Generic[FallbackCauseT]):
         )
 
         self._client.handle_error(response, fail_message=f"failed to {action} {self._api_path[1:]} typing indicator")
-        data = decode_response(response.content, response_type=IMTypingResponse)
+        data = decode_response(response.content, type=IMTypingResponse)
         logger.debug("successfully %s %s typing indicator for %r", action, self._api_path[1:], to)
         return data
 
@@ -101,7 +101,7 @@ class InstantMessagingClient(ABC, BaseProduct, Generic[FallbackCauseT]):
         )
 
         self._client.handle_error(response, fail_message=f"failed to {action} {self._api_path[1:]} reaction")
-        data = decode_response(response.content, response_type=IMReactionResponse)
+        data = decode_response(response.content, type=IMReactionResponse)
         logger.debug("successfully %s %s reaction for %r", action, self._api_path[1:], to)
         return data
 

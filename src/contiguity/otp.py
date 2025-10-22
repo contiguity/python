@@ -81,7 +81,7 @@ class OTP(BaseProduct):
         )
 
         self._client.handle_error(response, fail_message="failed to send OTP")
-        data = decode_response(response.content, response_type=OTPSendResponse)
+        data = decode_response(response.content, type=OTPSendResponse)
         logger.debug("successfully sent OTP %r to %r", data.otp_id, to)
         return data
 
@@ -94,7 +94,7 @@ class OTP(BaseProduct):
         )
 
         self._client.handle_error(response, fail_message="failed to resend OTP")
-        data = decode_response(response.content, response_type=OTPResendResponse)
+        data = decode_response(response.content, type=OTPResendResponse)
         logger.debug("successfully resent OTP %r with status: %r", otp_id, data.resent)
         return data
 
@@ -108,6 +108,6 @@ class OTP(BaseProduct):
         )
 
         self._client.handle_error(response, fail_message="failed to verify OTP")
-        data = decode_response(response.content, response_type=OTPVerifyResponse)
+        data = decode_response(response.content, type=OTPVerifyResponse)
         logger.debug("successfully verified OTP %r with status: %r", otp_id, data.verified)
         return data
