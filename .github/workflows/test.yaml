@@ -12,7 +12,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      PYTHON_VERSION: "3.9"
+      PYTHON_VERSION: "3.10"
       CONTIGUITY_PROJECT_ID: ${{ secrets.CONTIGUITY_PROJECT_ID }}
       CONTIGUITY_TOKEN: ${{ secrets.CONTIGUITY_TOKEN }}
       CONTIGUITY_DATA_KEY: ${{ secrets.CONTIGUITY_DATA_KEY }}
