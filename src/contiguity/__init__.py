@@ -1,3 +1,4 @@
+from ._auth import get_contiguity_token
 from ._client import ApiClient
 from .domains import Domains
 from .email import Email
@@ -9,25 +10,17 @@ from .whatsapp import WhatsApp
 
 
 class Contiguity:
-    """
-    Create a new instance of the Contiguity class.
-
-    Args:
-        token (str): The authentication token.
-    """
+    """The Contiguity client."""
 
     def __init__(
         self,
         *,
-        token: str,
+        token: str | None = None,
         base_url: str = "https://api.contiguity.com",
     ) -> None:
-        if not token:
-            msg = "token cannot be empty"
-            raise ValueError(msg)
-        self.token = token
+        self.token = token or get_contiguity_token()
         self.base_url = base_url
-        self.client = ApiClient(base_url=self.base_url, api_key=token.strip())
+        self.client = ApiClient(base_url=self.base_url, api_key=self.token.strip())
 
         self.text = Text(client=self.client)
         self.email = Email(client=self.client)
