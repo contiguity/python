@@ -92,7 +92,7 @@ class IMessage(InstantMessagingClient[FallbackCause]):
         )
 
         self._client.handle_error(response, fail_message="failed to send instant message")
-        data = decode_response(response.content, type=ReadResponse)
+        data = decode_response(response.content, response_type=ReadResponse)
         logger.debug("successfully sent %s read receipt to %r", self._api_path[1:], to)
         return data
 
@@ -102,4 +102,4 @@ class IMessage(InstantMessagingClient[FallbackCause]):
         )
 
         self._client.handle_error(response, fail_message="failed to get message history")
-        return decode_response(response.content, type=History)
+        return decode_response(response.content, response_type=History)

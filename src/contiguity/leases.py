@@ -81,17 +81,17 @@ class Leases(BaseProduct):
     def get_available_numbers(self) -> list[NumberDetails]:
         response = self._client.get("/leases")
         self._client.handle_error(response, fail_message="failed to get available numbers")
-        return decode_response(response.content, type=list[NumberDetails])
+        return decode_response(response.content, response_type=list[NumberDetails])
 
     def get_leased_numbers(self) -> list[NumberDetails]:
         response = self._client.get("/leased")
         self._client.handle_error(response, fail_message="failed to get leased numbers")
-        return decode_response(response.content, type=list[NumberDetails])
+        return decode_response(response.content, response_type=list[NumberDetails])
 
     def get_number_details(self, number: str, /) -> NumberDetails:
         response = self._client.get(f"/lease/{number}")
         self._client.handle_error(response, fail_message="failed to get number details")
-        return decode_response(response.content, type=NumberDetails)
+        return decode_response(response.content, response_type=NumberDetails)
 
     def lease_number(
         self,
@@ -106,10 +106,10 @@ class Leases(BaseProduct):
             json={"billing_method": billing_method},
         )
         self._client.handle_error(response, fail_message="failed to lease number")
-        return decode_response(response.content, type=NumberDetails)
+        return decode_response(response.content, response_type=NumberDetails)
 
     def terminate_lease(self, number: NumberDetails | str, /) -> TerminateLeaseResponse:
         number = number.id if isinstance(number, NumberDetails) else number
         response = self._client.delete(f"/leased/{number}")
         self._client.handle_error(response, fail_message="failed to terminate lease")
-        return decode_response(response.content, type=TerminateLeaseResponse)
+        return decode_response(response.content, response_type=TerminateLeaseResponse)

@@ -44,6 +44,6 @@ class Text(BaseProduct):
         )
 
         self._client.handle_error(response, fail_message="failed to send text message")
-        data = decode_response(response.content, type=TextResponse)
+        data = decode_response(response.content, response_type=TextResponse)
         logger.debug("successfully sent text to %r", to)
         return data

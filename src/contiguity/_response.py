@@ -28,8 +28,8 @@ class ErrorResponse(BaseResponse):
     status: HTTPStatus
 
 
-def decode_response(content: bytes, /, *, type: type[T]) -> T:
-    raw = msgspec.json.decode(content, type=RawResponse[type])
+def decode_response(content: bytes, /, *, response_type: type[T]) -> T:
+    raw = msgspec.json.decode(content, type=RawResponse[response_type])
     metadata = ResponseMetadata(
         id=raw.id,
         timestamp=raw.timestamp,
@@ -37,7 +37,13 @@ def decode_response(content: bytes, /, *, type: type[T]) -> T:
         object=raw.object,
     )
     data = msgspec.to_builtins(raw.data)
+    
+    # Handle sequence types (list of structs)
+    if isinstance(data, Sequence) and not isinstance(data, str):
+        return msgspec.convert(data, type=response_type)
+    
+    # Handle mapping types (single struct with metadata)
     if not isinstance(data, Mapping):
-        msg = f"expected Mapping instance for 'data' field, got {_type(data)}"
+        msg = f"expected Mapping or Sequence instance for 'data' field, got {_type(data)}"
         raise TypeError(msg)
-    return msgspec.convert({**data, "metadata": metadata}, type=type)
+    return msgspec.convert({**data, "metadata": metadata}, type=response_type)
