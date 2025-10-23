@@ -1,19 +1,15 @@
-# ruff: noqa: S101, S311, PLR2004
 import random
 from collections.abc import Generator
 from typing import Any
 
 import pytest
-from dotenv import load_dotenv
-from pydantic import JsonValue
 
-from contiguity import Base, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
-from tests import random_string
-
-load_dotenv()
+from contiguity.base import Base, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
+from contiguity.base.common import DataType
+from tests import NON_EXISTENT_ITEM_WARNING, random_string
 
 
-def create_test_item(**kwargs: JsonValue) -> dict:
+def create_test_item(**kwargs: DataType) -> dict:
     kwargs.setdefault("key", "test_key")
     kwargs.setdefault("field1", random.randint(1, 1000))
     kwargs.setdefault("field2", random_string())
@@ -57,7 +53,7 @@ def test_get(base: Base) -> None:
 
 
 def test_get_nonexistent(base: Base) -> None:
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(DeprecationWarning, match=NON_EXISTENT_ITEM_WARNING):
         assert base.get("nonexistent_key") is None
 
 
@@ -71,7 +67,7 @@ def test_delete(base: Base) -> None:
     item = create_test_item()
     base.insert(item)
     base.delete("test_key")
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(DeprecationWarning, match=NON_EXISTENT_ITEM_WARNING):
         assert base.get("test_key") is None
 
 

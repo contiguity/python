@@ -1,16 +1,12 @@
-from __future__ import annotations
-
+import logging
 from enum import Enum
-from http import HTTPStatus
-from typing import TYPE_CHECKING
 
 import phonenumbers
-from pydantic import BaseModel
 
-from ._common import Crumbs  # noqa: TCH001 Pydantic needs this to be outside of the TYPE_CHECKING block.
+from ._product import BaseProduct
+from ._response import BaseResponse, decode_response
 
-if TYPE_CHECKING:
-    from ._client import ApiClient
+logger = logging.getLogger(__name__)
 
 
 class OTPLanguage(str, Enum):
@@ -52,27 +48,19 @@ class OTPLanguage(str, Enum):
     VIETNAMESE = "vi"
 
 
-class OTPSendResponse(BaseModel):
-    message: str
-    crumbs: Crumbs
+class OTPSendResponse(BaseResponse):
     otp_id: str
 
 
-class OTPResendResponse(BaseModel):
-    message: str
+class OTPResendResponse(BaseResponse):
     resent: bool
 
 
-class OTPVerifyResponse(BaseModel):
-    message: str
+class OTPVerifyResponse(BaseResponse):
     verified: bool
 
 
-class OTP:
-    def __init__(self, *, client: ApiClient, debug: bool = False) -> None:
-        self._client = client
-        self.debug = debug
-
+class OTP(BaseProduct):
     def send(
         self,
         to: str,
@@ -91,14 +79,10 @@ class OTP:
                 "name": name,
             },
         )
-        data = OTPSendResponse.model_validate_json(response.content)
 
-        if response.status_code != HTTPStatus.OK:
-            msg = f"Contiguity couldn't send your OTP. Received: {response.status_code} with reason: '{data.message}'"
-            raise ValueError(msg)
-        if self.debug:
-            print(f"Contiguity successfully sent your OTP to {to} with OTP ID {data.otp_id}")
-
+        self._client.handle_error(response, fail_message="failed to send OTP")
+        data = decode_response(response.content, type=OTPSendResponse)
+        logger.debug("successfully sent OTP %r to %r", data.otp_id, to)
         return data
 
     def resend(self, otp_id: str, /) -> OTPResendResponse:
@@ -108,17 +92,10 @@ class OTP:
                 "otp_id": otp_id,
             },
         )
-        data = OTPResendResponse.model_validate_json(response.content)
 
-        if response.status_code != HTTPStatus.OK:
-            msg = (
-                "Contiguity couldn't resend your OTP."
-                f" Received: {response.status_code} with reason: '{data.message}'"
-            )
-            raise ValueError(msg)
-        if self.debug:
-            print(f"Contiguity resent your OTP ({id}) with status: {data.resent}")
-
+        self._client.handle_error(response, fail_message="failed to resend OTP")
+        data = decode_response(response.content, type=OTPResendResponse)
+        logger.debug("successfully resent OTP %r with status: %r", otp_id, data.resent)
         return data
 
     def verify(self, otp: int | str, /, *, otp_id: str) -> OTPVerifyResponse:
@@ -129,15 +106,8 @@ class OTP:
                 "otp_id": otp_id,
             },
         )
-        data = OTPVerifyResponse.model_validate_json(response.content)
 
-        if response.status_code != HTTPStatus.OK:
-            msg = (
-                "Contiguity couldn't verify your OTP."
-                f" Received: {response.status_code} with reason: '{data.message}'"
-            )
-            raise ValueError(msg)
-        if self.debug:
-            print(f"Contiguity verified your OTP ({otp}) with status: {data.verified}")
-
+        self._client.handle_error(response, fail_message="failed to verify OTP")
+        data = decode_response(response.content, type=OTPVerifyResponse)
+        logger.debug("successfully verified OTP %r with status: %r", otp_id, data.verified)
         return data

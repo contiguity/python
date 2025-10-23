@@ -1,20 +1,11 @@
-# ruff: noqa: S101, S311, PLR2004
-from __future__ import annotations
-
 import random
-from typing import TYPE_CHECKING, Any
+from collections.abc import AsyncGenerator
+from typing import Any, TypedDict
 
 import pytest
-from dotenv import load_dotenv
-from typing_extensions import TypedDict
 
-from contiguity import AsyncBase, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
-from tests import random_string
-
-if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator
-
-load_dotenv()
+from contiguity.base import AsyncBase, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
+from tests import NON_EXISTENT_ITEM_WARNING, random_string
 
 
 class TestItemDict(TypedDict):
@@ -82,7 +73,7 @@ async def test_get(base: AsyncBase[TestItemDict]) -> None:
 
 
 async def test_get_nonexistent(base: AsyncBase[TestItemDict]) -> None:
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(DeprecationWarning, match=NON_EXISTENT_ITEM_WARNING):
         assert await base.get("nonexistent_key") is None
 
 
@@ -96,7 +87,7 @@ async def test_delete(base: AsyncBase[TestItemDict]) -> None:
     item = create_test_item()
     await base.insert(item)
     await base.delete("test_key")
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(DeprecationWarning, match=NON_EXISTENT_ITEM_WARNING):
         assert await base.get("test_key") is None
 
 

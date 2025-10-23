@@ -1,19 +1,15 @@
-# ruff: noqa: S101, S311, PLR2004
 import random
 from collections.abc import AsyncGenerator
 from typing import Any
 
 import pytest
-from dotenv import load_dotenv
-from pydantic import JsonValue
 
-from contiguity import AsyncBase, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
-from tests import random_string
-
-load_dotenv()
+from contiguity.base import AsyncBase, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
+from contiguity.base.common import DataType
+from tests import NON_EXISTENT_ITEM_WARNING, random_string
 
 
-def create_test_item(**kwargs: JsonValue) -> dict:
+def create_test_item(**kwargs: DataType) -> dict:
     kwargs.setdefault("key", "test_key")
     kwargs.setdefault("field1", random.randint(1, 1000))
     kwargs.setdefault("field2", random_string())
@@ -57,7 +53,7 @@ async def test_get(base: AsyncBase) -> None:
 
 
 async def test_get_nonexistent(base: AsyncBase) -> None:
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(DeprecationWarning, match=NON_EXISTENT_ITEM_WARNING):
         assert await base.get("nonexistent_key") is None
 
 
@@ -71,7 +67,7 @@ async def test_delete(base: AsyncBase) -> None:
     item = create_test_item()
     await base.insert(item)
     await base.delete("test_key")
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(DeprecationWarning, match=NON_EXISTENT_ITEM_WARNING):
         assert await base.get("test_key") is None
 
 

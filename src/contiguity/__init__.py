@@ -1,66 +1,44 @@
+from ._auth import get_contiguity_token
 from ._client import ApiClient
-from .analytics import EmailAnalytics
-from .base import AsyncBase, Base, BaseItem, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
+from .domains import Domains
+from .email import Email
+from .imessage import IMessage
+from .leases import Leases
 from .otp import OTP
-from .quota import Quota
-from .send import Send
-from .template import Template
-from .verify import Verify
+from .text import Text
+from .whatsapp import WhatsApp
 
 
 class Contiguity:
-    """
-    Create a new instance of the Contiguity class.
-    Args:
-        token (str): The authentication token.
-        debug (bool, optional): A flag indicating whether to enable debug mode. Default is False.
-    """
+    """The Contiguity client."""
 
     def __init__(
         self,
         *,
-        token: str,
-        base_url: str = "https://api.contiguity.co",
-        orwell_base_url: str = "https://orwell.contiguity.co",
-        debug: bool = False,
+        token: str | None = None,
+        base_url: str = "https://api.contiguity.com",
     ) -> None:
-        if not token:
-            msg = "Contiguity requires a token/API key to be provided via contiguity.login('token')"
-            raise ValueError(msg)
-        self.token = token
+        self.token = token or get_contiguity_token()
         self.base_url = base_url
-        self.orwell_base_url = orwell_base_url
-        self.debug = debug
-        self.client = ApiClient(base_url=self.base_url, api_key=token.strip())
-        self.orwell_client = ApiClient(base_url=self.orwell_base_url, api_key=token.strip())
+        self.client = ApiClient(base_url=self.base_url, api_key=self.token.strip())
 
-        self.send = Send(client=self.client, debug=self.debug)
-        self.verify = Verify()
-        self.email_analytics = EmailAnalytics(client=self.orwell_client, debug=self.debug)
-        self.quota = Quota(client=self.client, debug=self.debug)
-        self.otp = OTP(client=self.client, debug=self.debug)
-        self.template = Template()
-
-
-def login(token: str, /, *, debug: bool = False) -> Contiguity:
-    return Contiguity(token=token, debug=debug)
+        self.text = Text(client=self.client)
+        self.email = Email(client=self.client)
+        self.otp = OTP(client=self.client)
+        self.imessage = IMessage(client=self.client)
+        self.whatsapp = WhatsApp(client=self.client)
+        self.leases = Leases(client=self.client)
+        self.domains = Domains(client=self.client)
 
 
 __all__ = (
-    "AsyncBase",
-    "Contiguity",
-    "Send",
-    "Verify",
-    "EmailAnalytics",
-    "Quota",
     "OTP",
-    "Template",
-    "Base",
-    "BaseItem",
-    "InvalidKeyError",
-    "ItemConflictError",
-    "ItemNotFoundError",
-    "QueryResponse",
-    "login",
+    "Contiguity",
+    "Domains",
+    "Email",
+    "IMessage",
+    "Leases",
+    "Text",
+    "WhatsApp",
 )
-__version__ = "2.0.0"
+__version__ = "3.0.0"

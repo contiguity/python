@@ -1,20 +1,19 @@
-from __future__ import annotations
-
 from collections.abc import Mapping, Sequence
 from datetime import datetime
-from typing import Any, Generic, TypeVar, Union
+from typing import Any, Generic, TypeAlias, TypeVar
 from urllib.parse import quote
 
-from pydantic import BaseModel
-from pydantic import JsonValue as DataType
-from typing_extensions import Self
+from msgspec import Struct
 
 from .exceptions import InvalidKeyError
 
-TimestampType = Union[int, datetime]
+# Defining DataType in one line causes issues with msgspec.
+DataType: TypeAlias = str | int | float | bool | None  # type: ignore[reportRedeclaration]
+DataType: TypeAlias = DataType | Sequence[DataType] | Mapping[str, DataType]  # type: ignore[reportRedeclaration]
+TimestampType = int | datetime
 QueryType = Mapping[str, DataType]
 
-ItemType = Union[Mapping[str, Any], BaseModel]
+ItemType = Mapping[str, Any] | Struct
 ItemT = TypeVar("ItemT", bound=ItemType)
 DefaultItemT = TypeVar("DefaultItemT")
 
@@ -26,13 +25,13 @@ class Unset:
 UNSET = Unset()
 
 
-class BaseItem(BaseModel):
+class BaseItem(Struct):
     key: str
 
 
-class QueryResponse(BaseModel, Generic[ItemT]):
+class QueryResponse(Struct, Generic[ItemT]):
     count: int = 0
-    last_key: Union[str, None] = None  # noqa: UP007 Pydantic doesn't support `X | Y` syntax in Python 3.9.
+    last_key: str | None = None
     items: Sequence[ItemT] = []
 
 
@@ -45,13 +44,13 @@ class Trim(UpdateOperation):
 
 
 class Increment(UpdateOperation):
-    def __init__(self: Increment, value: int = 1, /) -> None:
+    def __init__(self, value: int = 1, /) -> None:
         self.value = value
 
 
 class Append(UpdateOperation):
-    def __init__(self: Append, value: DataType, /) -> None:
-        if isinstance(value, (list, tuple)):
+    def __init__(self, value: DataType, /) -> None:
+        if isinstance(value, list | tuple):
             self.value = value
         else:
             self.value = [value]
@@ -79,7 +78,7 @@ class Updates:
         return Prepend(value)
 
 
-class UpdatePayload(BaseModel):
+class UpdatePayload(Struct):
     set: dict[str, DataType] = {}
     increment: dict[str, int] = {}
     append: dict[str, Sequence[DataType]] = {}
@@ -87,7 +86,7 @@ class UpdatePayload(BaseModel):
     delete: list[str] = []
 
     @classmethod
-    def from_updates_mapping(cls: type[Self], updates: Mapping[str, DataType | UpdateOperation], /) -> Self:
+    def from_updates_mapping(cls, updates: Mapping[str, DataType | UpdateOperation], /) -> "UpdatePayload":
         set = {}
         increment = {}
         append = {}

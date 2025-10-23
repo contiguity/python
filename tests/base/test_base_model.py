@@ -1,27 +1,24 @@
-# ruff: noqa: S101, S311, PLR2004
 import random
 from collections.abc import Generator
 from typing import Any
 
 import pytest
-from dotenv import load_dotenv
-from pydantic import BaseModel
+from msgspec import Struct, field
 
-from contiguity import Base, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
-from tests import random_string
-
-load_dotenv()
+from contiguity.base import Base, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
+from tests import NON_EXISTENT_ITEM_WARNING, random_string
 
 
-class TestItemModel(BaseModel):
+class TestItemModel(Struct):
+    __test__ = False
     key: str = "test_key"
     field1: int = random.randint(1, 1000)
     field2: str = random_string()
     field3: int = 1
     field4: int = 0
-    field5: list[str] = ["foo", "bar"]
-    field6: list[int] = [1, 2]
-    field7: dict[str, str] = {"foo": "bar"}
+    field5: list[str] = field(default_factory=lambda: ["foo", "bar"])
+    field6: list[int] = field(default_factory=lambda: [1, 2])
+    field7: dict[str, str] = field(default_factory=lambda: {"foo": "bar"})
 
 
 @pytest.fixture
@@ -56,7 +53,7 @@ def test_get(base: Base[TestItemModel]) -> None:
 
 
 def test_get_nonexistent(base: Base[TestItemModel]) -> None:
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(DeprecationWarning, match=NON_EXISTENT_ITEM_WARNING):
         assert base.get("nonexistent_key") is None
 
 
@@ -70,7 +67,7 @@ def test_delete(base: Base[TestItemModel]) -> None:
     item = TestItemModel()
     base.insert(item)
     base.delete("test_key")
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(DeprecationWarning, match=NON_EXISTENT_ITEM_WARNING):
         assert base.get("test_key") is None
 
 

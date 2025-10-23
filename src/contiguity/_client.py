@@ -1,20 +1,30 @@
-from __future__ import annotations
+from http import HTTPStatus
 
 from httpx import AsyncClient as HttpxAsyncClient
 from httpx import Client as HttpxClient
+from httpx import Response
 
 from ._auth import get_contiguity_token
+from ._response import ErrorResponse, decode_response
 
 
-class ApiError(Exception):
+class ContiguityApiError(Exception):
     pass
 
 
-class ApiClient(HttpxClient):
+class BaseApiClient:
+    def handle_error(self, response: Response, /, *, fail_message: str = "api request failed") -> None:
+        if not HTTPStatus.OK <= response.status_code < HTTPStatus.MULTIPLE_CHOICES:
+            data = decode_response(response.content, type=ErrorResponse)
+            msg = f"{fail_message}. {response.status_code} {data.error}"
+            raise ContiguityApiError(msg)
+
+
+class ApiClient(HttpxClient, BaseApiClient):
     def __init__(
-        self: ApiClient,
+        self: "ApiClient",
         *,
-        base_url: str = "https://api.contiguity.co",
+        base_url: str = "https://api.contiguity.com",
         api_key: str | None = None,
         timeout: int = 5,
     ) -> None:
@@ -23,7 +33,6 @@ class ApiClient(HttpxClient):
         super().__init__(
             headers={
                 "Content-Type": "application/json",
-                "X-API-Key": api_key,
                 "Authorization": f"Token {api_key}",
             },
             timeout=timeout,
@@ -31,11 +40,11 @@ class ApiClient(HttpxClient):
         )
 
 
-class AsyncApiClient(HttpxAsyncClient):
+class AsyncApiClient(HttpxAsyncClient, BaseApiClient):
     def __init__(
-        self: AsyncApiClient,
+        self: "AsyncApiClient",
         *,
-        base_url: str = "https://api.contiguity.co",
+        base_url: str = "https://api.contiguity.com",
         api_key: str | None = None,
         timeout: int = 5,
     ) -> None:
@@ -44,7 +53,6 @@ class AsyncApiClient(HttpxAsyncClient):
         super().__init__(
             headers={
                 "Content-Type": "application/json",
-                "X-API-Key": api_key,
                 "Authorization": f"Token {api_key}",
             },
             timeout=timeout,

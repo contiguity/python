@@ -1,5 +1,4 @@
-# ruff: noqa: T201
-from contiguity import Base
+from contiguity.base import Base
 
 # Create a Base instance.
 db = Base("my-base")

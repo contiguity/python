@@ -1,21 +1,17 @@
-# ruff: noqa: S101, S311, PLR2004
 import random
 from collections.abc import AsyncGenerator, Mapping
 from typing import Any
 
 import pytest
-from dotenv import load_dotenv
-from pydantic import JsonValue
 
-from contiguity import AsyncBase, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
-from tests import random_string
+from contiguity.base import AsyncBase, InvalidKeyError, ItemConflictError, ItemNotFoundError, QueryResponse
+from contiguity.base.common import DataType
+from tests import NON_EXISTENT_ITEM_WARNING, random_string
 
-load_dotenv()
-
-DictItemType = Mapping[str, JsonValue]
+DictItemType = Mapping[str, DataType]
 
 
-def create_test_item(**kwargs: JsonValue) -> DictItemType:
+def create_test_item(**kwargs: DataType) -> DictItemType:
     kwargs.setdefault("key", "test_key")
     kwargs.setdefault("field1", random.randint(1, 1000))
     kwargs.setdefault("field2", random_string())
@@ -59,7 +55,7 @@ async def test_get(base: AsyncBase[DictItemType]) -> None:
 
 
 async def test_get_nonexistent(base: AsyncBase[DictItemType]) -> None:
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(DeprecationWarning, match=NON_EXISTENT_ITEM_WARNING):
         assert await base.get("nonexistent_key") is None
 
 
@@ -73,7 +69,7 @@ async def test_delete(base: AsyncBase[DictItemType]) -> None:
     item = create_test_item()
     await base.insert(item)
     await base.delete("test_key")
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(DeprecationWarning, match=NON_EXISTENT_ITEM_WARNING):
         assert await base.get("test_key") is None
 
 

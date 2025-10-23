@@ -21,12 +21,6 @@ import contiguity
 client = contiguity.login("your_token_here")
 ```
 
-You can also initialize it with the optional 'debug' flag:
-
-```js
-client = contiguity.login("your_token_here", True)
-```
-
 You can get your token from the Contiguity [dashboard](https://contiguity.co/dashboard).
 
 ## Sending your first email 📤
