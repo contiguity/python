@@ -18,7 +18,7 @@ jobs:
       CONTIGUITY_DATA_KEY: ${{ secrets.CONTIGUITY_DATA_KEY }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v6
