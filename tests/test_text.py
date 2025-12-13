@@ -6,7 +6,7 @@ from tests import get_test_phone
 
 
 @pytest.fixture
-def text_client() -> Text:
+def text() -> Text:
     return Contiguity().text
 
 

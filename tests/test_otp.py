@@ -6,7 +6,7 @@ from tests import get_test_phone
 
 
 @pytest.fixture
-def otp_client() -> OTP:
+def otp() -> OTP:
     return Contiguity().otp
 
 

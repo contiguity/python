@@ -6,7 +6,7 @@ from tests import get_test_phone
 
 
 @pytest.fixture
-def whatsapp_client() -> WhatsApp:
+def whatsapp() -> WhatsApp:
     return Contiguity().whatsapp
 
 

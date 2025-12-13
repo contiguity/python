@@ -6,7 +6,7 @@ from tests import get_test_email
 
 
 @pytest.fixture
-def email_client() -> Email:
+def email() -> Email:
     return Contiguity().email
 
 
@@ -43,8 +43,8 @@ def test_email_with_optional_fields(email: Email) -> None:
         from_="Test Sender",
         subject="Test Email with Optional Fields",
         body_text="This is a test email with optional fields.",
-        reply_to="reply@contiguity.co",
-        cc=["cc@contiguity.co"],
+        reply_to=get_test_email(reply_to=True),
+        cc=[get_test_email(cc=True)],
         headers={"X-Test-Header": "pytest"},
     )
 

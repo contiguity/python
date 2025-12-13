@@ -6,7 +6,7 @@ from tests import get_test_phone
 
 
 @pytest.fixture
-def imessage_client() -> IMessage:
+def imessage() -> IMessage:
     return Contiguity().imessage
 
 
