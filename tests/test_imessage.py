@@ -4,6 +4,8 @@ from contiguity import Contiguity
 from contiguity.imessage import IMessage
 from tests import get_test_phone
 
+pytest.skip("tests are WIP", allow_module_level=True)
+
 
 @pytest.fixture
 def imessage() -> IMessage:

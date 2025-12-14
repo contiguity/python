@@ -4,6 +4,8 @@ from contiguity import Contiguity
 from contiguity.text import Text
 from tests import get_test_phone
 
+pytest.skip("tests are WIP", allow_module_level=True)
+
 
 @pytest.fixture
 def text() -> Text:

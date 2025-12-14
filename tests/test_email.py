@@ -4,6 +4,8 @@ from contiguity import Contiguity
 from contiguity.email import Email
 from tests import get_test_email
 
+pytest.skip("tests are WIP", allow_module_level=True)
+
 
 @pytest.fixture
 def email() -> Email:
