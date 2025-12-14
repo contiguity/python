@@ -60,3 +60,6 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_TOKEN }}
+          skip-existing: true
+          # Why did PyPI enable this experimental feature by default?
+          attestations: false
