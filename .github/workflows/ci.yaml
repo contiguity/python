@@ -17,10 +17,10 @@ jobs:
     name: Build
     uses: ./.github/workflows/build.yaml
 
-  # test:
-  # name: Test
-  # uses: ./.github/workflows/test.yaml
-  # secrets: inherit
+  test:
+    name: Test
+    uses: ./.github/workflows/test.yaml
+    secrets: inherit
 
   release:
     name: Create release
@@ -28,7 +28,7 @@ jobs:
     needs:
       - lint
       - build
-      # - test
+      - test
     runs-on: ubuntu-latest
     environment: release
     permissions:
@@ -57,7 +57,7 @@ jobs:
     needs:
       - lint
       - build
-      # - test
+      - test
     runs-on: ubuntu-latest
     environment: release
     permissions:
