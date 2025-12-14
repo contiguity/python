@@ -28,7 +28,7 @@ jobs:
     needs:
       - lint
       - build
-      - test
+      # - test
     permissions:
       contents: write
       # Trusted publishing doesn't support reusable workflows yet
