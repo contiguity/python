@@ -40,6 +40,7 @@ jobs:
     name: Publish package to PyPI
     runs-on: ubuntu-latest
     environment: release
+    # Trusted publishing doesn't support reusable workflows yet
     # permissions:
     #   id-token: write
     steps:
