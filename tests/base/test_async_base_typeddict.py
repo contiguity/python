@@ -8,7 +8,7 @@ from contiguity.base import AsyncBase, InvalidKeyError, ItemConflictError, ItemN
 from tests import NON_EXISTENT_ITEM_WARNING, random_string
 
 
-class TestItemDict(TypedDict):
+class ItemDict(TypedDict):
     key: str
     field1: int
     field2: str
@@ -28,8 +28,8 @@ def create_test_item(  # noqa: PLR0913
     field5: list[str] | None = None,
     field6: list[int] | None = None,
     field7: dict[str, str] | None = None,
-) -> TestItemDict:
-    return TestItemDict(
+) -> ItemDict:
+    return ItemDict(
         key=key,
         field1=field1,
         field2=field2,
@@ -42,8 +42,8 @@ def create_test_item(  # noqa: PLR0913
 
 
 @pytest.fixture
-async def base() -> AsyncGenerator[AsyncBase[TestItemDict], Any]:
-    base = AsyncBase("test_base_typeddict", item_type=TestItemDict)
+async def base() -> AsyncGenerator[AsyncBase[ItemDict], Any]:
+    base = AsyncBase("test_base_typeddict", item_type=ItemDict)
     for item in (await base.query()).items:
         await base.delete(item["key"])
     yield base
@@ -53,10 +53,10 @@ async def base() -> AsyncGenerator[AsyncBase[TestItemDict], Any]:
 
 def test_bad_base_name() -> None:
     with pytest.raises(ValueError, match="invalid Base name ''"):
-        AsyncBase("", item_type=TestItemDict)
+        AsyncBase("", item_type=ItemDict)
 
 
-async def test_bad_key(base: AsyncBase[TestItemDict]) -> None:
+async def test_bad_key(base: AsyncBase[ItemDict]) -> None:
     with pytest.raises(InvalidKeyError):
         await base.get("")
     with pytest.raises(InvalidKeyError):
@@ -65,25 +65,25 @@ async def test_bad_key(base: AsyncBase[TestItemDict]) -> None:
         await base.update({"foo": "bar"}, key="")
 
 
-async def test_get(base: AsyncBase[TestItemDict]) -> None:
+async def test_get(base: AsyncBase[ItemDict]) -> None:
     item = create_test_item()
     await base.insert(item)
     fetched_item = await base.get("test_key")
     assert fetched_item == item
 
 
-async def test_get_nonexistent(base: AsyncBase[TestItemDict]) -> None:
+async def test_get_nonexistent(base: AsyncBase[ItemDict]) -> None:
     with pytest.warns(DeprecationWarning, match=NON_EXISTENT_ITEM_WARNING):
         assert await base.get("nonexistent_key") is None
 
 
-async def test_get_default(base: AsyncBase[TestItemDict]) -> None:
+async def test_get_default(base: AsyncBase[ItemDict]) -> None:
     for default_item in (None, "foo", 42, create_test_item()):
         fetched_item = await base.get("nonexistent_key", default=default_item)
         assert fetched_item == default_item
 
 
-async def test_delete(base: AsyncBase[TestItemDict]) -> None:
+async def test_delete(base: AsyncBase[ItemDict]) -> None:
     item = create_test_item()
     await base.insert(item)
     await base.delete("test_key")
@@ -91,39 +91,39 @@ async def test_delete(base: AsyncBase[TestItemDict]) -> None:
         assert await base.get("test_key") is None
 
 
-async def test_insert(base: AsyncBase[TestItemDict]) -> None:
+async def test_insert(base: AsyncBase[ItemDict]) -> None:
     item = create_test_item()
     inserted_item = await base.insert(item)
     assert inserted_item == item
 
 
-async def test_insert_existing(base: AsyncBase[TestItemDict]) -> None:
+async def test_insert_existing(base: AsyncBase[ItemDict]) -> None:
     item = create_test_item()
     await base.insert(item)
     with pytest.raises(ItemConflictError):
         await base.insert(item)
 
 
-async def test_put(base: AsyncBase[TestItemDict]) -> None:
+async def test_put(base: AsyncBase[ItemDict]) -> None:
     items = [create_test_item(f"test_key_{i}") for i in range(3)]
     for _ in range(2):
         response = await base.put(*items)
         assert response == items
 
 
-async def test_put_empty(base: AsyncBase[TestItemDict]) -> None:
+async def test_put_empty(base: AsyncBase[ItemDict]) -> None:
     items = []
     response = await base.put(*items)
     assert response == items
 
 
-async def test_put_too_many(base: AsyncBase[TestItemDict]) -> None:
+async def test_put_too_many(base: AsyncBase[ItemDict]) -> None:
     items = [create_test_item(key=f"test_key_{i}") for i in range(base.PUT_LIMIT + 1)]
     with pytest.raises(ValueError, match=f"cannot put more than {base.PUT_LIMIT} items at a time"):
         await base.put(*items)
 
 
-async def test_update(base: AsyncBase[TestItemDict]) -> None:
+async def test_update(base: AsyncBase[ItemDict]) -> None:
     item = create_test_item()
     await base.insert(item)
     updated_item = await base.update(
@@ -138,7 +138,7 @@ async def test_update(base: AsyncBase[TestItemDict]) -> None:
         },
         key="test_key",
     )
-    assert updated_item == TestItemDict(
+    assert updated_item == ItemDict(
         key="test_key",
         field1=item["field1"],
         field2="updated_value",
@@ -150,24 +150,24 @@ async def test_update(base: AsyncBase[TestItemDict]) -> None:
     )
 
 
-async def test_update_nonexistent(base: AsyncBase[TestItemDict]) -> None:
+async def test_update_nonexistent(base: AsyncBase[ItemDict]) -> None:
     with pytest.raises(ItemNotFoundError):
         await base.update({"foo": "bar"}, key=random_string())
 
 
-async def test_update_empty(base: AsyncBase[TestItemDict]) -> None:
+async def test_update_empty(base: AsyncBase[ItemDict]) -> None:
     with pytest.raises(ValueError, match="no updates provided"):
         await base.update({}, key="test_key")
 
 
-async def test_query_empty(base: AsyncBase[TestItemDict]) -> None:
+async def test_query_empty(base: AsyncBase[ItemDict]) -> None:
     items = [create_test_item(key=f"test_key_{i}", field1=i) for i in range(5)]
     await base.put(*items)
     response = await base.query()
     assert response == QueryResponse(count=5, last_key=None, items=items)
 
 
-async def test_query(base: AsyncBase[TestItemDict]) -> None:
+async def test_query(base: AsyncBase[ItemDict]) -> None:
     items = [create_test_item(key=f"test_key_{i}", field1=i) for i in range(5)]
     await base.put(*items)
     response = await base.query({"field1?gt": 1})

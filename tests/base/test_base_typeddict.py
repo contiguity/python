@@ -8,7 +8,7 @@ from contiguity.base import Base, InvalidKeyError, ItemConflictError, ItemNotFou
 from tests import NON_EXISTENT_ITEM_WARNING, random_string
 
 
-class TestItemDict(TypedDict):
+class ItemDict(TypedDict):
     key: str
     field1: int
     field2: str
@@ -28,8 +28,8 @@ def create_test_item(  # noqa: PLR0913
     field5: list[str] | None = None,
     field6: list[int] | None = None,
     field7: dict[str, str] | None = None,
-) -> TestItemDict:
-    return TestItemDict(
+) -> ItemDict:
+    return ItemDict(
         key=key,
         field1=field1,
         field2=field2,
@@ -42,8 +42,8 @@ def create_test_item(  # noqa: PLR0913
 
 
 @pytest.fixture
-def base() -> Generator[Base[TestItemDict], Any, None]:
-    base = Base("test_base_typeddict", item_type=TestItemDict)
+def base() -> Generator[Base[ItemDict], Any, None]:
+    base = Base("test_base_typeddict", item_type=ItemDict)
     for item in base.query().items:
         base.delete(item["key"])
     yield base
@@ -53,10 +53,10 @@ def base() -> Generator[Base[TestItemDict], Any, None]:
 
 def test_bad_base_name() -> None:
     with pytest.raises(ValueError, match="invalid Base name ''"):
-        Base("", item_type=TestItemDict)
+        Base("", item_type=ItemDict)
 
 
-def test_bad_key(base: Base[TestItemDict]) -> None:
+def test_bad_key(base: Base[ItemDict]) -> None:
     with pytest.raises(InvalidKeyError):
         base.get("")
     with pytest.raises(InvalidKeyError):
@@ -65,25 +65,25 @@ def test_bad_key(base: Base[TestItemDict]) -> None:
         base.update({"foo": "bar"}, key="")
 
 
-def test_get(base: Base[TestItemDict]) -> None:
+def test_get(base: Base[ItemDict]) -> None:
     item = create_test_item()
     base.insert(item)
     fetched_item = base.get("test_key")
     assert fetched_item == item
 
 
-def test_get_nonexistent(base: Base[TestItemDict]) -> None:
+def test_get_nonexistent(base: Base[ItemDict]) -> None:
     with pytest.warns(DeprecationWarning, match=NON_EXISTENT_ITEM_WARNING):
         assert base.get("nonexistent_key") is None
 
 
-def test_get_default(base: Base[TestItemDict]) -> None:
+def test_get_default(base: Base[ItemDict]) -> None:
     for default_item in (None, "foo", 42, create_test_item()):
         fetched_item = base.get("nonexistent_key", default=default_item)
         assert fetched_item == default_item
 
 
-def test_delete(base: Base[TestItemDict]) -> None:
+def test_delete(base: Base[ItemDict]) -> None:
     item = create_test_item()
     base.insert(item)
     base.delete("test_key")
@@ -91,39 +91,39 @@ def test_delete(base: Base[TestItemDict]) -> None:
         assert base.get("test_key") is None
 
 
-def test_insert(base: Base[TestItemDict]) -> None:
+def test_insert(base: Base[ItemDict]) -> None:
     item = create_test_item()
     inserted_item = base.insert(item)
     assert inserted_item == item
 
 
-def test_insert_existing(base: Base[TestItemDict]) -> None:
+def test_insert_existing(base: Base[ItemDict]) -> None:
     item = create_test_item()
     base.insert(item)
     with pytest.raises(ItemConflictError):
         base.insert(item)
 
 
-def test_put(base: Base[TestItemDict]) -> None:
+def test_put(base: Base[ItemDict]) -> None:
     items = [create_test_item(f"test_key_{i}") for i in range(3)]
     for _ in range(2):
         response = base.put(*items)
         assert response == items
 
 
-def test_put_empty(base: Base[TestItemDict]) -> None:
+def test_put_empty(base: Base[ItemDict]) -> None:
     items = []
     response = base.put(*items)
     assert response == items
 
 
-def test_put_too_many(base: Base[TestItemDict]) -> None:
+def test_put_too_many(base: Base[ItemDict]) -> None:
     items = [create_test_item(key=f"test_key_{i}") for i in range(base.PUT_LIMIT + 1)]
     with pytest.raises(ValueError, match=f"cannot put more than {base.PUT_LIMIT} items at a time"):
         base.put(*items)
 
 
-def test_update(base: Base[TestItemDict]) -> None:
+def test_update(base: Base[ItemDict]) -> None:
     item = create_test_item()
     base.insert(item)
     updated_item = base.update(
@@ -138,7 +138,7 @@ def test_update(base: Base[TestItemDict]) -> None:
         },
         key="test_key",
     )
-    assert updated_item == TestItemDict(
+    assert updated_item == ItemDict(
         key="test_key",
         field1=item["field1"],
         field2="updated_value",
@@ -150,24 +150,24 @@ def test_update(base: Base[TestItemDict]) -> None:
     )
 
 
-def test_update_nonexistent(base: Base[TestItemDict]) -> None:
+def test_update_nonexistent(base: Base[ItemDict]) -> None:
     with pytest.raises(ItemNotFoundError):
         base.update({"foo": "bar"}, key=random_string())
 
 
-def test_update_empty(base: Base[TestItemDict]) -> None:
+def test_update_empty(base: Base[ItemDict]) -> None:
     with pytest.raises(ValueError, match="no updates provided"):
         base.update({}, key="test_key")
 
 
-def test_query_empty(base: Base[TestItemDict]) -> None:
+def test_query_empty(base: Base[ItemDict]) -> None:
     items = [create_test_item(key=f"test_key_{i}", field1=i) for i in range(5)]
     base.put(*items)
     response = base.query()
     assert response == QueryResponse(count=5, last_key=None, items=items)
 
 
-def test_query(base: Base[TestItemDict]) -> None:
+def test_query(base: Base[ItemDict]) -> None:
     items = [create_test_item(key=f"test_key_{i}", field1=i) for i in range(5)]
     base.put(*items)
     response = base.query({"field1?gt": 1})
