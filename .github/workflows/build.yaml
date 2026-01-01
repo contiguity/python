@@ -19,13 +19,13 @@ jobs:
         run: uv build
 
       - name: Upload sdist artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: sdist
           path: ./dist/*.tar.gz
 
       - name: Upload wheels artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: wheels
           path: ./dist/*.whl
