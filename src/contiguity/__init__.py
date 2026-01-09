@@ -1,3 +1,5 @@
+from importlib.metadata import version
+
 from ._auth import get_contiguity_token
 from ._client import ApiClient
 from .domains import Domains
@@ -41,4 +43,4 @@ __all__ = (
     "Text",
     "WhatsApp",
 )
-__version__ = "3.0.0"
+__version__ = version("contiguity")

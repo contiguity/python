@@ -1,19 +1,11 @@
-[build-system]
-requires = [
-    "setuptools>=61",
-]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "contiguity"
-dynamic = ["version"]
+version = "3.0.0"
 description = "Contiguity's official Python SDK"
 readme = "README.md"
-license = {file = "LICENSE.txt"}
+license = { file = "LICENSE.txt" }
 requires-python = ">=3.10"
-authors = [
-    {name = "Contiguity", email = "help@contiguity.support"},
-]
+authors = [{ name = "Contiguity", email = "help@contiguity.support" }]
 keywords = [
     "python",
     "contiguity",
@@ -52,11 +44,9 @@ dev = [
 [project.urls]
 Repository = "https://github.com/contiguity/python"
 
-[tool.setuptools]
-package-data = {contiguity = ["py.typed"]}
-
-[tool.setuptools.dynamic]
-version = {attr = "contiguity.__version__"}
+[build-system]
+requires = ["uv_build>=0.9.22"]
+build-backend = "uv_build"
 
 [tool.ruff]
 src = ["src"]
