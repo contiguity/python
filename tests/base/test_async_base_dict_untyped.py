@@ -129,10 +129,10 @@ async def test_update(base: AsyncBase) -> None:
     assert updated_item == {
         "key": "test_key",
         "field1": "updated_value",
-        "field3": item["field3"] + 2,
-        "field4": item["field4"] - 2,
-        "field5": [*item["field5"], "baz"],
-        "field6": [3, 4, *item["field6"]],
+        "field3": item["field3"] + 2,  # ty: ignore[unsupported-operator]
+        "field4": item["field4"] - 2,  # ty: ignore[unsupported-operator]
+        "field5": [*item["field5"], "baz"],  # ty: ignore[not-iterable]
+        "field6": [3, 4, *item["field6"]],  # ty: ignore[not-iterable]
         "field7": item["field7"],
     }
 

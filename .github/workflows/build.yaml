@@ -5,8 +5,12 @@ on:
   workflow_call:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    name: Build distributions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
