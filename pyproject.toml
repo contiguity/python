@@ -1,3 +1,9 @@
+[build-system]
+requires = [
+    "setuptools>=61",
+]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "contiguity"
 version = "3.0.0"
@@ -34,20 +40,21 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "prek>=0.2.22",
+    "prek~=0.4.5",
     "pytest~=9.0.2",
     "pytest-asyncio~=1.3.0",
     "pytest-cov~=7.0.0",
     "python-dotenv~=1.2.1",
-    "ty>=0.0.2",
 ]
 
 [project.urls]
 Repository = "https://github.com/contiguity/python"
 
-[build-system]
-requires = ["uv_build>=0.9.22"]
-build-backend = "uv_build"
+[tool.setuptools]
+package-data = {contiguity = ["py.typed"]}
+
+[tool.setuptools.dynamic]
+version = {attr = "contiguity.__version__"}
 
 [tool.ruff]
 src = ["src"]
