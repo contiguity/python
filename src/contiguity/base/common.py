@@ -50,7 +50,7 @@ class Increment(UpdateOperation):
 
 class Append(UpdateOperation):
     def __init__(self, value: DataType, /) -> None:
-        if isinstance(value, list | tuple):
+        if isinstance(value, list | tuple) and not isinstance(value, Mapping):
             self.value = value
         else:
             self.value = [value]
