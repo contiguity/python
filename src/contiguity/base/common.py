@@ -8,8 +8,8 @@ from msgspec import Struct
 from .exceptions import InvalidKeyError
 
 # Defining DataType in one line causes issues with msgspec.
-DataType: TypeAlias = str | int | float | bool | None  # type: ignore[reportRedeclaration]
-DataType: TypeAlias = DataType | Sequence[DataType] | Mapping[str, DataType]  # type: ignore[reportRedeclaration]
+DataType: TypeAlias = str | int | float | bool | None
+DataType: TypeAlias = DataType | Sequence[DataType] | Mapping[str, DataType]
 TimestampType = int | datetime
 QueryType = Mapping[str, DataType]
 
@@ -50,7 +50,7 @@ class Increment(UpdateOperation):
 
 class Append(UpdateOperation):
     def __init__(self, value: DataType, /) -> None:
-        if isinstance(value, list | tuple):
+        if isinstance(value, list | tuple) and not isinstance(value, Mapping):
             self.value = value
         else:
             self.value = [value]

@@ -2,7 +2,7 @@ import os
 from collections.abc import Mapping, Sequence
 from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
-from typing import Any, Generic, Literal, overload
+from typing import Any, Generic, Literal, cast, overload
 from warnings import warn
 
 import msgspec
@@ -36,11 +36,36 @@ class AsyncBase(Generic[ItemT]):
 
     @overload
     def __init__(
+        self: "AsyncBase[dict[str, Any]]",
+        name: str,
+        /,
+        *,
+        data_key: str | None = None,
+        project_id: str | None = None,
+        host: str | None = None,
+        api_version: str = "v1",
+    ) -> None: ...
+
+    @overload
+    @deprecated("The `project_key` parameter has been renamed to `data_key`.")
+    def __init__(
+        self: "AsyncBase[dict[str, Any]]",
+        name: str,
+        /,
+        *,
+        project_key: str | None = None,
+        project_id: str | None = None,
+        host: str | None = None,
+        api_version: str = "v1",
+    ) -> None: ...
+
+    @overload
+    def __init__(
         self,
         name: str,
         /,
         *,
-        item_type: type[ItemT] = Mapping[str, Any],
+        item_type: type[ItemT],
         data_key: str | None = None,
         project_id: str | None = None,
         host: str | None = None,
@@ -54,7 +79,7 @@ class AsyncBase(Generic[ItemT]):
         name: str,
         /,
         *,
-        item_type: type[ItemT] = Mapping[str, Any],
+        item_type: type[ItemT],
         project_key: str | None = None,
         project_id: str | None = None,
         host: str | None = None,
@@ -66,7 +91,7 @@ class AsyncBase(Generic[ItemT]):
         name: str,
         /,
         *,
-        item_type: type[ItemT] = Mapping[str, Any],
+        item_type: type[ItemT] | None = None,
         data_key: str | None = None,
         project_key: str | None = None,  # Deprecated.
         project_id: str | None = None,
@@ -78,7 +103,7 @@ class AsyncBase(Generic[ItemT]):
             raise ValueError(msg)
 
         self.name = name
-        self.item_type = item_type
+        self.item_type = cast("type[ItemT]", item_type if item_type is not None else dict[str, Any])
         self.data_key = data_key or project_key or get_data_key()
         self.project_id = project_id or get_project_id()
         self.host = host or os.getenv("CONTIGUITY_BASE_HOST") or "api.base.contiguity.co"
@@ -118,7 +143,7 @@ class AsyncBase(Generic[ItemT]):
             response.raise_for_status()
         except HTTPStatusError as exc:
             raise ContiguityApiError(exc.response.text) from exc
-        return msgspec.json.decode(response.content, type=Sequence[self.item_type] if sequence else self.item_type)
+        return msgspec.json.decode(response.content, type=Sequence[self.item_type] if sequence else self.item_type)  # ty: ignore[invalid-type-form]
 
     def _insert_expires_attr(
         self,
@@ -288,7 +313,7 @@ class AsyncBase(Generic[ItemT]):
             response.raise_for_status()
         except HTTPStatusError as exc:
             raise ContiguityApiError(exc.response.text) from exc
-        return msgspec.json.decode(response.content, type=QueryResponse[self.item_type])
+        return msgspec.json.decode(response.content, type=QueryResponse[self.item_type])  # ty: ignore[invalid-type-form]
 
     @deprecated("This method has been renamed to `query` and will be removed in a future release.")
     async def fetch(

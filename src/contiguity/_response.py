@@ -29,7 +29,7 @@ class ErrorResponse(BaseResponse):
 
 
 def decode_response(content: bytes, /, *, type: type[T]) -> T:
-    raw = msgspec.json.decode(content, type=RawResponse[type])
+    raw = msgspec.json.decode(content, type=RawResponse[type])  # ty: ignore[invalid-type-form]
     metadata = ResponseMetadata(
         id=raw.id,
         timestamp=raw.timestamp,
