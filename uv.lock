@@ -363,11 +363,11 @@ wheels = [
 
 [[package]]
 name = "phonenumbers"
-version = "9.0.38"
+version = "9.0.40"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/0f/55/17ea3dcefbeabd0006e09dcecba1a4ec5b27acff788add158a061f39f46b/phonenumbers-9.0.38.tar.gz", hash = "sha256:6806bebd46638af2fc2609675ea046067a40512eca81bf1446132e2fda29d113", size = 2311043, upload-time = "2026-08-28T09:48:51.458Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b4/39/66db12a16eec873aa12411fc6da0fe052a86413fe117e208b51836b41740/phonenumbers-9.0.40.tar.gz", hash = "sha256:a0dd1bc98efa0b6f5839c7b1fface2ebdf0a811645dd8211ae3f037a17ec07ac", size = 2311069, upload-time = "2026-09-24T06:59:03.882Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b2/09/6df2574777489592b37e6b9cda72962709af2e121b122bf6aae19bcce7b4/phonenumbers-9.0.38-py2.py3-none-any.whl", hash = "sha256:f3cbeb1a42bf226060c60fc6277f5431755d325eddc23fbf2c72ef7e156113c6", size = 2594756, upload-time = "2026-08-28T09:48:48.33Z" },
+    { url = "https://files.pythonhosted.org/packages/74/da/c266478ebea2b8d3176484e06756960d94d27cce2d7dc5ca3be6151cb9e3/phonenumbers-9.0.40-py2.py3-none-any.whl", hash = "sha256:189c028c4acd41ee80782e50f74a91260bd76d9115c83be94302509e1cdb5e84", size = 2594747, upload-time = "2026-09-24T06:59:00.564Z" },
 ]
 
 [[package]]
